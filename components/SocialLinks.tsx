@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { Globe, MessageCircle, Phone, ArrowUpRight } from "lucide-react";
 import { BRAND_LINKS } from "@/lib/config/constants";
 
@@ -66,8 +67,6 @@ const LINKS: LinkItem[] = [
   },
 ];
 
-import type { Variants } from "framer-motion";
-
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -111,21 +110,21 @@ export default function SocialLinks() {
                 href={link.href}
                 target={link.isExternal ? "_blank" : undefined}
                 rel={link.isExternal ? "noopener noreferrer" : undefined}
-                className="group relative flex w-full items-center justify-between px-5 py-3.5 sm:py-4 rounded-sm bg-brand-surface/80 hover:bg-brand-surface-subtle border border-brand-border hover:border-brand-gold/45 transition-colors duration-250 ease-out focus-visible:border-brand-gold focus-visible:ring-1 focus-visible:ring-brand-gold/50 cursor-pointer"
+                className="group relative flex w-full items-center justify-between px-5 py-3.5 sm:py-4 rounded-sm bg-brand-white hover:bg-brand-cream border border-brand-green/20 hover:border-brand-green/45 transition-colors duration-250 ease-out focus-visible:border-brand-green focus-visible:ring-1 focus-visible:ring-brand-green/40 shadow-[0_2px_8px_rgba(3,52,49,0.04)] cursor-pointer"
               >
-                {/* Left Icon in warm champagne gold */}
-                <div className="flex items-center justify-center w-5 h-5 text-brand-gold/80 group-hover:text-brand-gold transition-colors duration-200">
-                  <Icon className="w-4 h-4 stroke-[1.75]" />
+                {/* Left Icon in #033431 */}
+                <div className="flex items-center justify-center w-5 h-5 text-brand-green">
+                  <Icon className="w-4 h-4 stroke-[1.8]" />
                 </div>
 
-                {/* Centered / Balanced Label */}
-                <span className="text-[13px] sm:text-sm font-sans font-medium tracking-[0.08em] text-brand-text group-hover:text-brand-cream transition-colors duration-200 uppercase">
+                {/* Centered / Balanced Label in #033431 */}
+                <span className="text-[13px] sm:text-sm font-sans font-medium tracking-[0.08em] text-brand-green uppercase">
                   {link.label}
                 </span>
 
-                {/* Right Arrow indicator */}
-                <div className="flex items-center justify-center w-5 h-5 text-brand-gold/40 group-hover:text-brand-gold/80 transition-colors duration-200">
-                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[1.5] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                {/* Right Arrow indicator in #033431 */}
+                <div className="flex items-center justify-center w-5 h-5 text-brand-green/50 group-hover:text-brand-green transition-colors duration-200">
+                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[1.75] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
               </a>
             </motion.div>

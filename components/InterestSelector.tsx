@@ -54,20 +54,20 @@ export default function InterestSelector({
               onKeyDown={(e) => handleKeyDown(e, pref.id)}
               className={`relative flex items-center justify-between px-3.5 py-3 sm:py-3.5 rounded-sm cursor-pointer select-none transition-all duration-200 min-h-[46px] border ${
                 isChecked
-                  ? "bg-brand-gold/[0.08] border-brand-gold/60 text-brand-cream shadow-[0_0_12px_rgba(227,192,128,0.08)]"
-                  : "bg-brand-surface/40 hover:bg-brand-surface/75 border-brand-border-subtle hover:border-brand-gold/30 text-brand-text-muted hover:text-brand-text"
+                  ? "bg-brand-green border-brand-green text-brand-neutral-bg shadow-[0_2px_8px_rgba(3,52,49,0.18)]"
+                  : "bg-brand-white hover:bg-brand-cream border-brand-green/18 hover:border-brand-green/40 text-brand-dark"
               } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
             >
-              <span className="text-[12.5px] sm:text-[13px] font-sans tracking-wide">
+              <span className="text-[12.5px] sm:text-[13px] font-sans tracking-wide font-medium">
                 {pref.label}
               </span>
 
-              {/* Minimalist Checkmark indicator */}
+              {/* Clear Visual Check indicator */}
               <div
                 className={`flex items-center justify-center w-4 h-4 rounded-sm border transition-colors duration-200 ml-2 shrink-0 ${
                   isChecked
-                    ? "bg-brand-gold border-brand-gold text-brand-bg"
-                    : "border-brand-gold/30 bg-transparent"
+                    ? "bg-brand-neutral-bg border-brand-neutral-bg text-brand-green"
+                    : "border-brand-green/35 bg-transparent"
                 }`}
               >
                 {isChecked && <Check className="w-3 h-3 stroke-[2.8]" />}
