@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import type {
   InterestTag,
@@ -251,7 +251,12 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const [subscriberId, setSubscriberId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [phoneCountryCode, setPhoneCountryCode] = useState("+91"); // Default to India (+91)
+  const [selectedCountryCode, setSelectedCountryCode] = useState("IN"); // Default to India (IN)
+  const activeCountry = useMemo(
+    () => ALL_COUNTRIES.find((c) => c.code === selectedCountryCode) || TOP_COUNTRIES[0],
+    [selectedCountryCode]
+  );
+  const phoneCountryCode = activeCountry.dialCode;
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
@@ -481,7 +486,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     if (val.startsWith("+")) {
       const match = ALL_COUNTRIES.find((c) => val.startsWith(c.dialCode));
       if (match) {
-        setPhoneCountryCode(match.dialCode);
+        setSelectedCountryCode(match.code);
         const remainder = val.slice(match.dialCode.length).trim().replace(/[^\d\s-]/g, "");
         setPhoneNumber(remainder);
         return;
@@ -489,7 +494,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     }
     // Auto-strip leading 0 if Indian number (+91)
     let clean = val.replace(/[^\d\s-]/g, "");
-    if (phoneCountryCode === "+91" && clean.startsWith("0")) {
+    if (activeCountry.code === "IN" && clean.startsWith("0")) {
       clean = clean.replace(/^0+/, "");
     }
     setPhoneNumber(clean);
@@ -647,41 +652,50 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
                     {/* Unified Curved Input Container */}
                     <div className="flex items-center w-full min-h-[48px] bg-white border border-charini-border focus-within:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2">
-                      {/* Country Code Selector */}
-                      <div className="relative flex items-center shrink-0 pl-2 pr-1">
+                      {/* Compact Country Code Selector */}
+                      <div className="relative flex items-center shrink-0 pl-2.5 pr-1.5 py-1 cursor-pointer">
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-charini-charcoal font-medium select-none pointer-events-none">
+                          <span className="text-base leading-none">{activeCountry.flag}</span>
+                          <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-charini-charcoal">
+                            {activeCountry.short}
+                          </span>
+                          <span className="text-xs sm:text-sm text-charini-charcoal-dim">
+                            {activeCountry.dialCode}
+                          </span>
+                          <svg
+                            className="w-3 h-3 text-charini-charcoal-dim ml-0.5"
+                            viewBox="0 0 10 6"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M1 1L5 5L9 1" />
+                          </svg>
+                        </div>
                         <select
                           id="country-code"
                           aria-label="Country dial code"
-                          value={phoneCountryCode}
-                          onChange={(e) => setPhoneCountryCode(e.target.value)}
-                          className="bg-transparent text-xs sm:text-sm text-charini-charcoal font-medium cursor-pointer pr-4 appearance-none focus:outline-none"
+                          value={selectedCountryCode}
+                          onChange={(e) => setSelectedCountryCode(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         >
                           <optgroup label="Popular">
                             {TOP_COUNTRIES.map((c) => (
-                              <option key={`top-${c.code}`} value={c.dialCode}>
-                                {c.flag} {c.dialCode} ({c.name})
+                              <option key={`top-profile-${c.code}`} value={c.code}>
+                                {c.flag} {c.name} ({c.short} {c.dialCode})
                               </option>
                             ))}
                           </optgroup>
                           <optgroup label="All Countries">
                             {ALL_COUNTRIES.map((c) => (
-                              <option key={`all-${c.code}`} value={c.dialCode}>
-                                {c.flag} {c.dialCode} - {c.name}
+                              <option key={`all-profile-${c.code}`} value={c.code}>
+                                {c.flag} {c.name} ({c.short} {c.dialCode})
                               </option>
                             ))}
                           </optgroup>
                         </select>
-                        <svg
-                          className="w-3 h-3 text-charini-charcoal-dim pointer-events-none absolute right-0.5"
-                          viewBox="0 0 10 6"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M1 1L5 5L9 1" />
-                        </svg>
                       </div>
 
                       <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
@@ -694,8 +708,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                         autoComplete="tel-national"
                         value={phoneNumber}
                         onChange={(e) => handlePhoneChange(e.target.value)}
-                        placeholder={phoneCountryCode === "+91" ? "98765 43210" : "Mobile number"}
-                        className="w-full px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
+                        placeholder={activeCountry.code === "IN" ? "98765 43210" : "Mobile number"}
+                        className="flex-1 min-w-0 px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
                       />
                     </div>
                     <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
@@ -914,41 +928,50 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                         : "border-charini-border focus-within:border-charini-charcoal"
                     } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2`}
                   >
-                    {/* Country Code Selector */}
-                    <div className="relative flex items-center shrink-0 pl-2 pr-1">
+                    {/* Compact Country Code Selector */}
+                    <div className="relative flex items-center shrink-0 pl-2.5 pr-1.5 py-1 cursor-pointer">
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-charini-charcoal font-medium select-none pointer-events-none">
+                        <span className="text-base leading-none">{activeCountry.flag}</span>
+                        <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-charini-charcoal">
+                          {activeCountry.short}
+                        </span>
+                        <span className="text-xs sm:text-sm text-charini-charcoal-dim">
+                          {activeCountry.dialCode}
+                        </span>
+                        <svg
+                          className="w-3 h-3 text-charini-charcoal-dim ml-0.5"
+                          viewBox="0 0 10 6"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M1 1L5 5L9 1" />
+                        </svg>
+                      </div>
                       <select
                         id="signup-country-code"
                         aria-label="Country dial code"
-                        value={phoneCountryCode}
-                        onChange={(e) => setPhoneCountryCode(e.target.value)}
-                        className="bg-transparent text-xs sm:text-sm text-charini-charcoal font-medium cursor-pointer pr-4 appearance-none focus:outline-none"
+                        value={selectedCountryCode}
+                        onChange={(e) => setSelectedCountryCode(e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       >
                         <optgroup label="Popular">
                           {TOP_COUNTRIES.map((c) => (
-                            <option key={`top-${c.code}`} value={c.dialCode}>
-                              {c.flag} {c.dialCode} ({c.name})
+                            <option key={`top-signup-${c.code}`} value={c.code}>
+                              {c.flag} {c.name} ({c.short} {c.dialCode})
                             </option>
                           ))}
                         </optgroup>
                         <optgroup label="All Countries">
                           {ALL_COUNTRIES.map((c) => (
-                            <option key={`all-${c.code}`} value={c.dialCode}>
-                              {c.flag} {c.dialCode} - {c.name}
+                            <option key={`all-signup-${c.code}`} value={c.code}>
+                              {c.flag} {c.name} ({c.short} {c.dialCode})
                             </option>
                           ))}
                         </optgroup>
                       </select>
-                      <svg
-                        className="w-3 h-3 text-charini-charcoal-dim pointer-events-none absolute right-0.5"
-                        viewBox="0 0 10 6"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M1 1L5 5L9 1" />
-                      </svg>
                     </div>
 
                     <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
@@ -968,8 +991,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                           setErrorField(null);
                         }
                       }}
-                      placeholder={phoneCountryCode === "+91" ? "98765 43210" : "Mobile number"}
-                      className="w-full px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
+                      placeholder={activeCountry.code === "IN" ? "98765 43210" : "Mobile number"}
+                      className="flex-1 min-w-0 px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
                     />
                   </div>
                   <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
