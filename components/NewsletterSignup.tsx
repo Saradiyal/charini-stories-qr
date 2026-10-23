@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import type { InterestTag, SubscribeResponse } from "@/lib/subscriptions/contract";
+import type {
+  InterestTag,
+  SubscribeRequestBody,
+  SubscribeResponse,
+} from "@/lib/subscriptions/contract";
 import { ERROR_MESSAGES } from "@/lib/subscriptions/contract";
 import {
   SPECIFIC_CUTS_SLUG,
@@ -237,12 +241,14 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
 }
 
 export default function NewsletterSignup({ initialTags }: NewsletterSignupProps) {
+  const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [specificCutsNote, setSpecificCutsNote] = useState("");
   const [consent, setConsent] = useState(false);
 
   // Profile details state (Thank You page)
+  const [subscriberId, setSubscriberId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneCountryCode, setPhoneCountryCode] = useState("+91"); // Default to India (+91)
@@ -259,6 +265,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
   const renderTimeRef = useRef<number>(0);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const specificCutsInputRef = useRef<HTMLInputElement>(null);
   const storeSectionRef = useRef<HTMLDivElement>(null);
 
@@ -351,25 +358,39 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     setErrorField(null);
 
     const trimmedEmail = email.trim();
+    const cleanPhone = phoneNumber.replace(/\D/g, "");
 
-    // 1. Validate email presence
-    if (!trimmedEmail) {
-      setErrorMessage(ERROR_MESSAGES.email_required);
-      setErrorField("email");
-      emailInputRef.current?.focus();
-      return;
+    // 1. Validate contact presence & format depending on chosen method
+    if (contactMethod === "email") {
+      if (!trimmedEmail) {
+        setErrorMessage(ERROR_MESSAGES.email_required);
+        setErrorField("email");
+        emailInputRef.current?.focus();
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        setErrorMessage(ERROR_MESSAGES.invalid_email);
+        setErrorField("email");
+        emailInputRef.current?.focus();
+        return;
+      }
+    } else {
+      if (!cleanPhone) {
+        setErrorMessage(ERROR_MESSAGES.phone_required);
+        setErrorField("phone");
+        phoneInputRef.current?.focus();
+        return;
+      }
+      if (cleanPhone.length < 6 || cleanPhone.length > 15) {
+        setErrorMessage(ERROR_MESSAGES.invalid_phone);
+        setErrorField("phone");
+        phoneInputRef.current?.focus();
+        return;
+      }
     }
 
-    // 2. Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      setErrorMessage(ERROR_MESSAGES.invalid_email);
-      setErrorField("email");
-      emailInputRef.current?.focus();
-      return;
-    }
-
-    // 3. Validate at least one store selected
+    // 2. Validate at least one store selected
     if (!hasStoreSelected) {
       setErrorMessage(ERROR_MESSAGES.store_required);
       setErrorField("stores");
@@ -377,7 +398,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
       return;
     }
 
-    // 4. Validate marketing consent
+    // 3. Validate marketing consent
     if (!consent) {
       setErrorMessage(ERROR_MESSAGES.consent_required);
       setErrorField("consent");
@@ -406,8 +427,10 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         }
       }
 
-      const payload = {
-        email: trimmedEmail,
+      const payload: SubscribeRequestBody = {
+        email: contactMethod === "email" ? trimmedEmail : null,
+        phoneCountryCode: contactMethod === "phone" ? phoneCountryCode : null,
+        phoneNumber: contactMethod === "phone" ? cleanPhone : null,
         interests: selectedInterests,
         specificCutsNote: finalNote,
         marketingConsent: consent,
@@ -429,6 +452,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           setErrorField(data.field || null);
           if (data.field === "email") {
             emailInputRef.current?.focus();
+          } else if (data.field === "phone") {
+            phoneInputRef.current?.focus();
           } else if (data.field === "stores") {
             storeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
           }
@@ -436,6 +461,10 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           setErrorMessage(ERROR_MESSAGES.server_error);
         }
         return;
+      }
+
+      if (data.ok && data.subscriberId) {
+        setSubscriberId(data.subscriberId);
       }
 
       // Success verified by database
@@ -468,10 +497,11 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
 
     // If all profile fields are empty, mark complete
-    if (!firstName.trim() && !lastName.trim() && !phoneNumber.trim()) {
+    const isComplementaryEmpty =
+      contactMethod === "email" ? !phoneNumber.trim() : !email.trim();
+    if (!firstName.trim() && !lastName.trim() && isComplementaryEmpty) {
       setIsProfileSaved(true);
       return;
     }
@@ -484,11 +514,12 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          phoneCountryCode,
-          phoneNumber: phoneNumber.trim(),
+          subscriberId,
+          email: email.trim() || null,
+          firstName: firstName.trim() || null,
+          lastName: lastName.trim() || null,
+          phoneCountryCode: phoneNumber.trim() ? phoneCountryCode : null,
+          phoneNumber: phoneNumber.trim() || null,
         }),
       });
 
@@ -599,77 +630,105 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                   </div>
                 </div>
 
-                {/* Contact Number with Country Code */}
-                <div className="flex flex-col">
-                  <div className="flex items-baseline justify-between mb-1.5">
-                    <label
-                      htmlFor="phone-number"
-                      className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
-                    >
-                      Contact Number
-                    </label>
-                    <span className="font-sans text-[10px] text-charini-charcoal-dim">
-                      WhatsApp updates
-                    </span>
-                  </div>
-
-                  {/* Unified Curved Input Container */}
-                  <div className="flex items-center w-full min-h-[48px] bg-white border border-charini-border focus-within:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2">
-                    {/* Country Code Selector */}
-                    <div className="relative flex items-center shrink-0 pl-2 pr-1">
-                      <select
-                        id="country-code"
-                        aria-label="Country dial code"
-                        value={phoneCountryCode}
-                        onChange={(e) => setPhoneCountryCode(e.target.value)}
-                        className="bg-transparent text-xs sm:text-sm text-charini-charcoal font-medium cursor-pointer pr-4 appearance-none focus:outline-none"
+                {/* Complementary Field: Phone if subscribed with Email, or Email if subscribed with Phone */}
+                {contactMethod === "email" ? (
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <label
+                        htmlFor="phone-number"
+                        className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
                       >
-                        <optgroup label="Popular">
-                          {TOP_COUNTRIES.map((c) => (
-                            <option key={`top-${c.code}`} value={c.dialCode}>
-                              {c.flag} {c.dialCode} ({c.name})
-                            </option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="All Countries">
-                          {ALL_COUNTRIES.map((c) => (
-                            <option key={`all-${c.code}`} value={c.dialCode}>
-                              {c.flag} {c.dialCode} - {c.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      </select>
-                      <svg
-                        className="w-3 h-3 text-charini-charcoal-dim pointer-events-none absolute right-0.5"
-                        viewBox="0 0 10 6"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M1 1L5 5L9 1" />
-                      </svg>
+                        Contact Number
+                      </label>
+                      <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                        WhatsApp (Optional)
+                      </span>
                     </div>
 
-                    <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
+                    {/* Unified Curved Input Container */}
+                    <div className="flex items-center w-full min-h-[48px] bg-white border border-charini-border focus-within:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2">
+                      {/* Country Code Selector */}
+                      <div className="relative flex items-center shrink-0 pl-2 pr-1">
+                        <select
+                          id="country-code"
+                          aria-label="Country dial code"
+                          value={phoneCountryCode}
+                          onChange={(e) => setPhoneCountryCode(e.target.value)}
+                          className="bg-transparent text-xs sm:text-sm text-charini-charcoal font-medium cursor-pointer pr-4 appearance-none focus:outline-none"
+                        >
+                          <optgroup label="Popular">
+                            {TOP_COUNTRIES.map((c) => (
+                              <option key={`top-${c.code}`} value={c.dialCode}>
+                                {c.flag} {c.dialCode} ({c.name})
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="All Countries">
+                            {ALL_COUNTRIES.map((c) => (
+                              <option key={`all-${c.code}`} value={c.dialCode}>
+                                {c.flag} {c.dialCode} - {c.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                        <svg
+                          className="w-3 h-3 text-charini-charcoal-dim pointer-events-none absolute right-0.5"
+                          viewBox="0 0 10 6"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M1 1L5 5L9 1" />
+                        </svg>
+                      </div>
 
-                    {/* Phone Number Input */}
-                    <input
-                      id="phone-number"
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel-national"
-                      value={phoneNumber}
-                      onChange={(e) => handlePhoneChange(e.target.value)}
-                      placeholder={phoneCountryCode === "+91" ? "98765 43210" : "Mobile number"}
-                      className="w-full px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
-                    />
+                      <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
+
+                      {/* Phone Number Input */}
+                      <input
+                        id="phone-number"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel-national"
+                        value={phoneNumber}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        placeholder={phoneCountryCode === "+91" ? "98765 43210" : "Mobile number"}
+                        className="w-full px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
+                      />
+                    </div>
+                    <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
+                      Private previews &amp; collection releases directly on WhatsApp.
+                    </p>
                   </div>
-                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
-                    Private previews &amp; collection releases directly on WhatsApp.
-                  </p>
-                </div>
+                ) : (
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <label
+                        htmlFor="profile-email"
+                        className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
+                      >
+                        Email Address
+                      </label>
+                      <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                        Optional
+                      </span>
+                    </div>
+                    <input
+                      id="profile-email"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className="w-full min-h-[48px] px-5 py-2.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                    />
+                    <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
+                      For digital lookbooks, invitations &amp; print stories.
+                    </p>
+                  </div>
+                )}
 
                 {profileMessage && (
                   <div className="w-full py-2 px-3 bg-charini-error-bg border border-charini-error/30 text-charini-error text-xs text-center rounded-xl">
@@ -733,42 +792,191 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
           {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-6">
-            {/* Email Field */}
+            {/* Contact Channel Selector & Input */}
             <div className="w-full flex flex-col">
-              <label
-                htmlFor="email"
-                className="font-sans text-[11px] font-medium tracking-[0.14em] uppercase text-charini-charcoal mb-2"
-              >
-                Email
-              </label>
-              <input
-                ref={emailInputRef}
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errorField === "email") {
-                    setErrorMessage(null);
-                    setErrorField(null);
-                  }
-                }}
-                placeholder="Enter your email address"
-                aria-required="true"
-                aria-invalid={errorField === "email" ? "true" : undefined}
-                aria-describedby={errorMessage && errorField === "email" ? "form-error" : undefined}
-                className={`w-full min-h-[48px] px-5 py-3 bg-white text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border ${
-                  errorField === "email"
-                    ? "border-charini-error focus:border-charini-error"
-                    : "border-charini-border focus:border-charini-charcoal"
-                } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]`}
-              />
+              <div className="flex items-baseline justify-between mb-2">
+                <span className="font-sans text-[11px] font-medium tracking-[0.14em] uppercase text-charini-charcoal">
+                  Subscribe Via
+                </span>
+                <span className="font-sans text-[11px] text-charini-charcoal-dim">
+                  Email or WhatsApp
+                </span>
+              </div>
+
+              {/* Segmented Luxury Pill Toggle */}
+              <div className="grid grid-cols-2 p-1 bg-[#FAF9F7] border border-charini-border rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContactMethod("email");
+                    if (errorField === "email" || errorField === "phone" || errorField === "contact") {
+                      setErrorMessage(null);
+                      setErrorField(null);
+                    }
+                  }}
+                  className={`py-2 px-3 text-xs font-medium rounded-full transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                    contactMethod === "email"
+                      ? "bg-charini-charcoal text-white shadow-sm"
+                      : "text-charini-charcoal-muted hover:text-charini-charcoal"
+                  }`}
+                >
+                  <svg
+                    className="w-3.5 h-3.5 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                  <span>Email</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContactMethod("phone");
+                    if (errorField === "email" || errorField === "phone" || errorField === "contact") {
+                      setErrorMessage(null);
+                      setErrorField(null);
+                    }
+                  }}
+                  className={`py-2 px-3 text-xs font-medium rounded-full transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                    contactMethod === "phone"
+                      ? "bg-charini-charcoal text-white shadow-sm"
+                      : "text-charini-charcoal-muted hover:text-charini-charcoal"
+                  }`}
+                >
+                  <svg
+                    className="w-3.5 h-3.5 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                  <span>WhatsApp</span>
+                </button>
+              </div>
+
+              {/* Dynamic Input based on contactMethod */}
+              {contactMethod === "email" ? (
+                <div className="flex flex-col">
+                  <input
+                    ref={emailInputRef}
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errorField === "email" || errorField === "contact") {
+                        setErrorMessage(null);
+                        setErrorField(null);
+                      }
+                    }}
+                    placeholder="Enter your email address"
+                    aria-required="true"
+                    aria-invalid={errorField === "email" || errorField === "contact" ? "true" : undefined}
+                    aria-describedby={
+                      errorMessage && (errorField === "email" || errorField === "contact")
+                        ? "form-error"
+                        : undefined
+                    }
+                    className={`w-full min-h-[48px] px-5 py-3 bg-white text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border ${
+                      errorField === "email" || errorField === "contact"
+                        ? "border-charini-error focus:border-charini-error"
+                        : "border-charini-border focus:border-charini-charcoal"
+                    } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]`}
+                  />
+                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
+                    Lookbooks, invitations &amp; collection releases sent to your inbox.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {/* WhatsApp Mobile Container */}
+                  <div
+                    className={`flex items-center w-full min-h-[48px] bg-white border ${
+                      errorField === "phone" || errorField === "contact"
+                        ? "border-charini-error focus-within:border-charini-error"
+                        : "border-charini-border focus-within:border-charini-charcoal"
+                    } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2`}
+                  >
+                    {/* Country Code Selector */}
+                    <div className="relative flex items-center shrink-0 pl-2 pr-1">
+                      <select
+                        id="signup-country-code"
+                        aria-label="Country dial code"
+                        value={phoneCountryCode}
+                        onChange={(e) => setPhoneCountryCode(e.target.value)}
+                        className="bg-transparent text-xs sm:text-sm text-charini-charcoal font-medium cursor-pointer pr-4 appearance-none focus:outline-none"
+                      >
+                        <optgroup label="Popular">
+                          {TOP_COUNTRIES.map((c) => (
+                            <option key={`top-${c.code}`} value={c.dialCode}>
+                              {c.flag} {c.dialCode} ({c.name})
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="All Countries">
+                          {ALL_COUNTRIES.map((c) => (
+                            <option key={`all-${c.code}`} value={c.dialCode}>
+                              {c.flag} {c.dialCode} - {c.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                      <svg
+                        className="w-3 h-3 text-charini-charcoal-dim pointer-events-none absolute right-0.5"
+                        viewBox="0 0 10 6"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M1 1L5 5L9 1" />
+                      </svg>
+                    </div>
+
+                    <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
+
+                    {/* Phone Number Input */}
+                    <input
+                      ref={phoneInputRef}
+                      id="signup-phone-number"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel-national"
+                      value={phoneNumber}
+                      onChange={(e) => {
+                        handlePhoneChange(e.target.value);
+                        if (errorField === "phone" || errorField === "contact") {
+                          setErrorMessage(null);
+                          setErrorField(null);
+                        }
+                      }}
+                      placeholder={phoneCountryCode === "+91" ? "98765 43210" : "Mobile number"}
+                      className="w-full px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
+                    />
+                  </div>
+                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
+                    Private previews &amp; collection releases directly on WhatsApp.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Step 1: Store Selection */}

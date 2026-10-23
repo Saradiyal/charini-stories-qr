@@ -9,7 +9,9 @@ export interface InterestTag {
 }
 
 export interface SubscribeRequestBody {
-  email: string;
+  email?: string | null;
+  phoneCountryCode?: string | null;
+  phoneNumber?: string | null;
   interests: string[];
   specificCutsNote?: string | null;
   marketingConsent: boolean;
@@ -18,8 +20,11 @@ export interface SubscribeRequestBody {
 }
 
 export type SubscribeErrorCode =
+  | "contact_required"
   | "email_required"
   | "invalid_email"
+  | "phone_required"
+  | "invalid_phone"
   | "store_required"
   | "consent_required"
   | "interests_required"
@@ -31,22 +36,32 @@ export type SubscribeErrorCode =
   | "unavailable"
   | "server_error";
 
-export type SubscribeField = "email" | "stores" | "interests" | "specificCutsNote" | "consent";
+export type SubscribeField =
+  | "contact"
+  | "email"
+  | "phone"
+  | "stores"
+  | "interests"
+  | "specificCutsNote"
+  | "consent";
 
 export type SubscribeResponse =
-  | { ok: true }
+  | { ok: true; subscriberId?: string }
   | { ok: false; code: SubscribeErrorCode; field?: SubscribeField };
 
 /** Visitor-facing copy for every outcome. Never includes internal details. */
 export const ERROR_MESSAGES: Record<SubscribeErrorCode | "network", string> = {
+  contact_required: "Please provide an email or mobile number.",
   email_required: "Please enter your email address.",
   invalid_email: "Please enter a valid email address.",
+  phone_required: "Please enter your mobile number.",
+  invalid_phone: "Please enter a valid mobile number.",
   store_required: "Please select at least one store (CHARINI or CHARINI STORIES).",
-  consent_required: "Please confirm you\u2019d like to receive our emails.",
+  consent_required: "Please confirm your consent to receive updates.",
   interests_required: "Please choose at least one update.",
   invalid_interests: "Please choose from the options shown.",
   note_too_long: "Please keep this under 500 characters.",
-  already_subscribed: "This email address is already subscribed.",
+  already_subscribed: "You are already subscribed. We\u2019ve updated your preferences.",
   rate_limited: "Too many attempts. Please wait a few minutes and try again.",
   invalid_request: "Something went wrong. Please try again.",
   unavailable: "Subscriptions are temporarily unavailable. Please try again later.",

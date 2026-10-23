@@ -74,7 +74,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubscribeResp
       return NextResponse.json({ ok: false, code: result.code }, { status: 400 });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, subscriberId: result.subscriberId });
   } catch (err) {
     console.error("[api/subscribe] Unexpected error:", err);
     return NextResponse.json({ ok: false, code: "server_error" }, { status: 500 });

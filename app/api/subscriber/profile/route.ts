@@ -6,16 +6,20 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, firstName, lastName, phoneCountryCode, phoneNumber } = body || {};
+    const { subscriberId, email, firstName, lastName, phoneCountryCode, phoneNumber } = body || {};
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
-      return NextResponse.json({ ok: false, error: "invalid_email" }, { status: 400 });
-    }
-
+    const cleanEmail =
+      typeof email === "string" && email.includes("@") ? email.toLowerCase().trim() : null;
     const cleanFirst = typeof firstName === "string" ? firstName.trim().slice(0, 100) : null;
     const cleanLast = typeof lastName === "string" ? lastName.trim().slice(0, 100) : null;
     const cleanCode = typeof phoneCountryCode === "string" ? phoneCountryCode.trim().slice(0, 8) : null;
-    const cleanPhone = typeof phoneNumber === "string" ? phoneNumber.replace(/\D/g, "").slice(0, 20) : null;
+    const cleanPhone =
+      typeof phoneNumber === "string" ? phoneNumber.replace(/\D/g, "").slice(0, 20) : null;
+    const cleanId = typeof subscriberId === "string" && subscriberId.length > 10 ? subscriberId : null;
+
+    if (!cleanId && !cleanEmail && !cleanPhone) {
+      return NextResponse.json({ ok: false, error: "identifier_required" }, { status: 400 });
+    }
 
     const supabase = getSecretServerClient();
     if (!supabase) {
@@ -23,7 +27,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { data, error } = await supabase.rpc("update_subscriber_profile", {
-      p_email: email.toLowerCase().trim(),
+      p_subscriber_id: cleanId,
+      p_email: cleanEmail,
       p_first_name: cleanFirst,
       p_last_name: cleanLast,
       p_phone_country_code: cleanCode,

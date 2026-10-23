@@ -4,15 +4,32 @@ import { LIMITS, SPECIFIC_CUTS_SLUG, STORE_SLUGS } from "@/lib/config";
 import type { SubscribeErrorCode, SubscribeField } from "@/lib/subscriptions/contract";
 
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export const subscribeSchema = z.object({
   email: z
-    .string({ error: "email_required" })
+    .string()
     .trim()
     .toLowerCase()
-    .min(1, { error: "email_required" })
     .max(LIMITS.emailMax, { error: "invalid_email" })
-    .pipe(z.email({ error: "invalid_email" })),
+    .nullish()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim().toLowerCase() : null)),
+  phoneCountryCode: z
+    .string()
+    .trim()
+    .max(8)
+    .nullish()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
+  phoneNumber: z
+    .string()
+    .trim()
+    .max(25)
+    .nullish()
+    .transform((v) => {
+      if (!v) return null;
+      const digits = v.replace(/\D/g, "");
+      return digits.length > 0 ? digits : null;
+    }),
   interests: z
     .array(
       z.string().max(LIMITS.slugMax, { error: "invalid_interests" }).regex(SLUG_PATTERN, {
@@ -33,7 +50,9 @@ export const subscribeSchema = z.object({
 });
 
 export type ValidSubscription = {
-  email: string;
+  email: string | null;
+  phoneCountryCode: string | null;
+  phoneNumber: string | null;
   interests: string[];
   specificCutsNote: string | null;
   marketingConsent: true;
@@ -45,6 +64,9 @@ export type ValidationOutcome =
 
 const FIELD_BY_PATH: Record<string, SubscribeField> = {
   email: "email",
+  phone: "phone",
+  phoneNumber: "phone",
+  contact: "contact",
   stores: "stores",
   interests: "interests",
   specificCutsNote: "specificCutsNote",
@@ -52,8 +74,11 @@ const FIELD_BY_PATH: Record<string, SubscribeField> = {
 };
 
 const KNOWN_CODES = new Set<SubscribeErrorCode>([
+  "contact_required",
   "email_required",
   "invalid_email",
+  "phone_required",
+  "invalid_phone",
   "store_required",
   "consent_required",
   "interests_required",
@@ -72,7 +97,30 @@ export function validateSubscription(input: unknown): ValidationOutcome {
     return { ok: false, code, field };
   }
 
-  const { email, interests, specificCutsNote, marketingConsent, elapsedMs } = parsed.data;
+  const { email, phoneCountryCode, phoneNumber, interests, specificCutsNote, marketingConsent, elapsedMs } =
+    parsed.data;
+
+  // At least one contact channel (email or phone) is required
+  if (!email && !phoneNumber) {
+    return { ok: false, code: "contact_required", field: "contact" };
+  }
+
+  // If email is provided, validate its format
+  if (email && (!EMAIL_REGEX.test(email) || email.length < 3)) {
+    return { ok: false, code: "invalid_email", field: "email" };
+  }
+
+  // If phone is provided, validate length
+  let cleanPhone = phoneNumber;
+  let cleanCode = phoneCountryCode || "+91";
+  if (cleanPhone) {
+    if (cleanCode === "+91" && cleanPhone.startsWith("0")) {
+      cleanPhone = cleanPhone.replace(/^0+/, "");
+    }
+    if (cleanPhone.length < 6 || cleanPhone.length > 15) {
+      return { ok: false, code: "invalid_phone", field: "phone" };
+    }
+  }
 
   // At least one store (CHARINI or CHARINI STORIES) must be selected.
   const hasStore = interests.some((slug) => (STORE_SLUGS as readonly string[]).includes(slug));
@@ -88,7 +136,14 @@ export function validateSubscription(input: unknown): ValidationOutcome {
 
   return {
     ok: true,
-    data: { email, interests, specificCutsNote: note, marketingConsent },
+    data: {
+      email: email || null,
+      phoneCountryCode: cleanPhone ? cleanCode : null,
+      phoneNumber: cleanPhone || null,
+      interests,
+      specificCutsNote: note,
+      marketingConsent,
+    },
     tooFast: typeof elapsedMs === "number" && elapsedMs < LIMITS.minFillMs,
   };
 }

@@ -5,13 +5,17 @@ import type { SubscribeErrorCode } from "@/lib/subscriptions/contract";
 import type { ValidSubscription } from "@/lib/subscriptions/validation";
 
 export type SubscribeOutcome =
-  | { ok: true; status: "subscribed" | "resubscribed" }
+  | { ok: true; status: "subscribed" | "resubscribed"; subscriberId?: string }
   | { ok: false; code: SubscribeErrorCode };
 
-type RpcResult = { status?: string; reason?: string } | null;
+type RpcResult = { status?: string; reason?: string; id?: string } | null;
 
 const INVALID_REASONS = new Set<SubscribeErrorCode>([
+  "contact_required",
+  "email_required",
   "invalid_email",
+  "phone_required",
+  "invalid_phone",
   "consent_required",
   "interests_required",
   "invalid_interests",
@@ -36,6 +40,8 @@ export async function subscribe(
 
   const { data: result, error } = await supabase.rpc("subscribe_newsletter", {
     p_email: data.email,
+    p_phone_country_code: data.phoneCountryCode,
+    p_phone_number: data.phoneNumber,
     p_interest_slugs: data.interests,
     p_specific_cuts_note: data.specificCutsNote,
     p_marketing_consent: data.marketingConsent,
@@ -53,7 +59,7 @@ export async function subscribe(
   switch (outcome?.status) {
     case "subscribed":
     case "resubscribed":
-      return { ok: true, status: outcome.status };
+      return { ok: true, status: outcome.status, subscriberId: outcome.id };
     case "already_subscribed":
       return { ok: false, code: "already_subscribed" };
     case "rate_limited":
