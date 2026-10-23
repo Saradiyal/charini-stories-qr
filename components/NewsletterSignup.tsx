@@ -183,18 +183,29 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
+            className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
           >
-            <div className="flex flex-col text-left">
-              <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal">
-                CHARINI
-              </span>
-              <span className="font-sans text-[10px] text-charini-charcoal-muted">
-                Main Label
-              </span>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-white border border-charini-border/80 shrink-0 flex items-center justify-center p-1 overflow-hidden shadow-xs">
+                <Image
+                  src="/charinilogo.png"
+                  alt="CHARINI"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal truncate">
+                  CHARINI
+                </span>
+                <span className="font-sans text-[10px] text-charini-charcoal-muted truncate">
+                  Silky Drapes &amp; Signature Silks
+                </span>
+              </div>
             </div>
             <svg
-              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all"
+              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -212,18 +223,29 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
+            className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
           >
-            <div className="flex flex-col text-left">
-              <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal">
-                CHARINI STORIES
-              </span>
-              <span className="font-sans text-[10px] text-charini-charcoal-muted">
-                Prints &amp; Silks
-              </span>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-[#0D352B] border border-charini-border/40 shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
+                <Image
+                  src="/charinistorieslogo.png"
+                  alt="CHARINI STORIES"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal truncate">
+                  CHARINI STORIES
+                </span>
+                <span className="font-sans text-[10px] text-charini-charcoal-muted truncate">
+                  100% Cotton &amp; Story-Based Prints
+                </span>
+              </div>
             </div>
             <svg
-              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all"
+              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -1023,13 +1045,19 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                 className="border-none p-0 m-0"
               >
                 <legend className="sr-only">Select Store</legend>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {availableStoreTags.map((tag) => {
                     const isSelected = selectedInterests.includes(tag.slug);
+                    const isCharini = tag.slug === "charini";
+                    const logoSrc = isCharini ? "/charinilogo.png" : "/charinistorieslogo.png";
+                    const subtitle = isCharini
+                      ? "Silky Drapes & Signature Silks"
+                      : "100% Cotton & Story-Based Prints";
+
                     return (
                       <label
                         key={tag.slug}
-                        className={`inline-flex items-center gap-2 px-4 py-2.5 min-h-[42px] text-xs sm:text-[13px] tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
+                        className={`flex items-center gap-3 px-4 py-2.5 min-h-[52px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
                           isSelected
                             ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-sm"
                             : errorField === "stores"
@@ -1044,14 +1072,45 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                           onChange={() => toggleInterest(tag.slug)}
                           aria-label={tag.label}
                         />
+
+                        {/* Store Logo Circle */}
+                        <div
+                          className={`w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs border ${
+                            isCharini
+                              ? "bg-white border-charini-border/70 p-0.5"
+                              : "bg-[#0D352B] border-[#0D352B]"
+                          }`}
+                        >
+                          <Image
+                            src={logoSrc}
+                            alt={tag.label}
+                            width={28}
+                            height={28}
+                            className={`w-full h-full ${isCharini ? "object-contain" : "object-cover"}`}
+                          />
+                        </div>
+
+                        {/* Store Label & Subtitle */}
+                        <div className="flex flex-col text-left flex-1 min-w-0">
+                          <span className="font-sans text-xs font-semibold tracking-wider uppercase truncate">
+                            {tag.label}
+                          </span>
+                          <span
+                            className={`font-sans text-[10px] truncate ${
+                              isSelected ? "text-white/70" : "text-charini-charcoal-muted"
+                            }`}
+                          >
+                            {subtitle}
+                          </span>
+                        </div>
+
                         {/* Visual non-color indicator */}
                         {isSelected && (
                           <span
                             aria-hidden="true"
-                            className="w-1.5 h-1.5 rounded-full bg-white inline-block"
+                            className="w-2 h-2 rounded-full bg-white shrink-0 inline-block"
                           />
                         )}
-                        <span>{tag.label}</span>
                       </label>
                     );
                   })}
