@@ -22,9 +22,10 @@ interface NewsletterSignupProps {
 
 interface QuickConnectBarProps {
   onOpenInstagram: () => void;
+  onOpenContact: () => void;
 }
 
-function QuickConnectBar({ onOpenInstagram }: QuickConnectBarProps) {
+function QuickConnectBar({ onOpenInstagram, onOpenContact }: QuickConnectBarProps) {
   return (
     <div className="w-full mb-6">
       <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
@@ -51,11 +52,10 @@ function QuickConnectBar({ onOpenInstagram }: QuickConnectBarProps) {
         </button>
 
         {/* Contact Button */}
-        <a
-          href="https://wa.me/94770468888"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 min-h-[42px] px-2 py-2 rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] active:scale-[0.98] transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.02)] group"
+        <button
+          type="button"
+          onClick={onOpenContact}
+          className="flex items-center justify-center gap-1.5 min-h-[42px] px-2 py-2 rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] active:scale-[0.98] transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.02)] cursor-pointer group"
         >
           <svg
             className="w-3.5 h-3.5 text-charini-charcoal shrink-0"
@@ -69,7 +69,7 @@ function QuickConnectBar({ onOpenInstagram }: QuickConnectBarProps) {
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
           </svg>
           <span className="font-sans text-[11px] sm:text-xs font-medium tracking-wide">Contact</span>
-        </a>
+        </button>
 
         {/* Location Button */}
         <a
@@ -262,6 +262,175 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
   );
 }
 
+interface ContactModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function ContactModal({ isOpen, onClose }: ContactModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contact-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[340px] p-6 bg-[#FAF9F7] border border-charini-border rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] text-center flex flex-col items-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-4 right-4 text-charini-charcoal-dim hover:text-charini-charcoal p-1.5 rounded-full hover:bg-black/5 transition-colors cursor-pointer"
+        >
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        {/* Contact Icon Badge */}
+        <div className="w-10 h-10 rounded-full bg-white border border-charini-border flex items-center justify-center mb-3 shadow-sm">
+          <svg
+            className="w-5 h-5 text-charini-charcoal"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+        </div>
+
+        {/* Title & Subtitle */}
+        <h3
+          id="contact-modal-title"
+          className="font-serif text-xl text-charini-charcoal font-normal tracking-tight mb-1"
+        >
+          Get in Touch
+        </h3>
+        <p className="font-sans text-xs text-charini-charcoal-muted mb-5">
+          Reach our boutique &amp; styling team
+        </p>
+
+        {/* Contact Options */}
+        <div className="w-full flex flex-col gap-2.5">
+          {/* WhatsApp Chat Option */}
+          <a
+            href="https://wa.me/94770468888"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 shrink-0 flex items-center justify-center shadow-xs">
+                <svg
+                  className="w-4 h-4 text-[#25D366]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal truncate">
+                  WhatsApp Chat
+                </span>
+                <span className="font-sans text-[10px] text-charini-charcoal-muted truncate">
+                  Instant messaging &amp; styling advice
+                </span>
+              </div>
+            </div>
+            <svg
+              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </a>
+
+          {/* Speak with Us Option */}
+          <a
+            href="tel:+94770468888"
+            onClick={onClose}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-charini-charcoal/5 border border-charini-charcoal/10 shrink-0 flex items-center justify-center shadow-xs">
+                <svg
+                  className="w-4 h-4 text-charini-charcoal"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal truncate">
+                  Speak with Us
+                </span>
+                <span className="font-sans text-[10px] text-charini-charcoal-muted truncate">
+                  Direct voice call to our boutique
+                </span>
+              </div>
+            </div>
+            <svg
+              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function NewsletterSignup({ initialTags }: NewsletterSignupProps) {
   const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
@@ -289,6 +458,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<string | null>(null);
   const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const renderTimeRef = useRef<number>(0);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -605,7 +775,10 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
               <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[320px] mb-8">
                 Thank you for subscribing. We look forward to welcoming you at the CHARINI pop-up!
               </p>
-              <QuickConnectBar onOpenInstagram={() => setIsInstagramModalOpen(true)} />
+              <QuickConnectBar
+                onOpenInstagram={() => setIsInstagramModalOpen(true)}
+                onOpenContact={() => setIsContactModalOpen(true)}
+              />
             </div>
           ) : (
             <div className="w-full">
@@ -815,7 +988,10 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           </div>
 
           {/* Quick Connect & Atelier Hub */}
-          <QuickConnectBar onOpenInstagram={() => setIsInstagramModalOpen(true)} />
+          <QuickConnectBar
+            onOpenInstagram={() => setIsInstagramModalOpen(true)}
+            onOpenContact={() => setIsContactModalOpen(true)}
+          />
 
           {/* Section Divider */}
           <div className="relative flex py-2 items-center mb-6">
@@ -1353,6 +1529,12 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
       <InstagramModal
         isOpen={isInstagramModalOpen}
         onClose={() => setIsInstagramModalOpen(false)}
+      />
+
+      {/* Contact Selection Modal */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
       />
     </div>
   );
