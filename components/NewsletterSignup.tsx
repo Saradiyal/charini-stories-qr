@@ -822,6 +822,106 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           </form>
         </main>
       )}
+
+      {/* Atelier & Connect Luxury Micro-Footer */}
+      <footer className="w-full border-t border-charini-border/70 mt-12 pt-7 pb-4 flex flex-col items-center gap-3.5">
+        <span className="font-sans text-[10px] font-semibold tracking-[0.2em] uppercase text-charini-charcoal-dim">
+          Atelier &amp; Connect
+        </span>
+
+        {/* Instagram Channels */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <a
+            href="https://www.instagram.com/charini_official/?hl=en"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 min-h-[36px] text-xs tracking-wide rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] transition-all duration-150 active:scale-[0.98] shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+          >
+            <svg
+              className="w-3.5 h-3.5 shrink-0 text-charini-charcoal"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            <span>@charini_official</span>
+          </a>
+
+          <a
+            href="https://www.instagram.com/charini.stories/?hl=en"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 min-h-[36px] text-xs tracking-wide rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] transition-all duration-150 active:scale-[0.98] shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+          >
+            <svg
+              className="w-3.5 h-3.5 shrink-0 text-charini-charcoal"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            <span>@charini.stories</span>
+          </a>
+        </div>
+
+        {/* WhatsApp & Location Links */}
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-charini-charcoal-muted pt-0.5">
+          <a
+            href="https://wa.me/94770468888"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 hover:text-charini-charcoal transition-colors underline-offset-4 hover:underline"
+          >
+            <svg
+              className="w-3.5 h-3.5 shrink-0 text-charini-charcoal"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+            <span>+94 77 046 8888</span>
+          </a>
+
+          <span className="text-charini-border select-none">•</span>
+
+          <a
+            href="https://maps.app.goo.gl/KdDbdkjUZBjs33qUA"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 hover:text-charini-charcoal transition-colors underline-offset-4 hover:underline"
+          >
+            <svg
+              className="w-3.5 h-3.5 shrink-0 text-charini-charcoal"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span>Colombo Flagship Store</span>
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
