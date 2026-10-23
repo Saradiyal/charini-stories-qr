@@ -5,12 +5,10 @@
 @tailwind utilities;
 
 :root {
-  --color-green: #033431;
-  --color-neutral-bg: #f8f6f2;
-  --color-cream: #f2eee6;
-  --color-dark: #172321;
-  --color-muted: #65706d;
-  --color-white: #ffffff;
+  --color-bg: #FAF8F5;
+  --color-charcoal: #1A1918;
+  --color-charcoal-muted: #68645E;
+  --color-border: #E5E0D7;
 }
 
 @layer base {
@@ -20,14 +18,15 @@
   }
 
   html {
+    color-scheme: light;
     scroll-behavior: smooth;
-    background-color: #f8f6f2;
+    background-color: #FAF8F5;
   }
 
   body {
-    background-color: #f8f6f2;
-    color: #172321;
-    font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #FAF8F5;
+    color: #1A1918;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
     touch-action: manipulation;
@@ -37,23 +36,71 @@
   }
 
   ::selection {
-    background-color: #033431;
-    color: #f8f6f2;
+    background-color: #1A1918;
+    color: #FAF8F5;
   }
 }
 
-/* Subtle botanical warmth vignette */
-.luxury-vignette {
-  background: radial-gradient(
-    circle at 50% 0%,
-    rgba(3, 52, 49, 0.04) 0%,
-    rgba(242, 238, 230, 0.5) 45%,
-    #f8f6f2 80%
-  );
+/* Subtle editorial paper grain & ambient light */
+.editorial-canvas {
+  background-color: #FAF8F5;
+  background-image: radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FAF8F5 70%);
 }
 
-/* Accessible focus styling using Deep Green #033431 */
+/* Accessible focus styling */
 :focus-visible {
-  outline: 2px solid #033431;
-  outline-offset: 2px;
+  outline: 1.5px solid #1A1918;
+  outline-offset: 2.5px;
+}
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Specific Cuts conditional smooth reveal */
+.conditional-field {
+  display: block;
+  opacity: 1;
+  max-height: 200px;
+  transform: translateY(0);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out, max-height 0.35s ease-in-out;
+}
+
+@starting-style {
+  .conditional-field {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.conditional-field[hidden] {
+  display: none;
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conditional-field {
+    transition: opacity 0.1s ease-out;
+    transform: none;
+  }
+  @starting-style {
+    .conditional-field {
+      transform: none;
+    }
+  }
+  .conditional-field[hidden] {
+    transform: none;
+  }
 }

@@ -2,24 +2,26 @@
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        brand: {
-          green: "#033431",
-          "green-hover": "#084642",
-          "green-subtle": "rgba(3, 52, 49, 0.06)",
-          "green-soft": "rgba(3, 52, 49, 0.12)",
-          "neutral-bg": "#F8F6F2",
-          cream: "#F2EEE6",
-          dark: "#172321",
-          muted: "#65706D",
-          white: "#FFFFFF",
-          border: "rgba(3, 52, 49, 0.15)",
-          "border-strong": "rgba(3, 52, 49, 0.35)",
+        charini: {
+          bg: "#FAF8F5",
+          surface: "#FFFFFF",
+          "surface-alt": "#F5F2EB",
+          charcoal: "#1A1918",
+          "charcoal-deep": "#11100F",
+          "charcoal-muted": "#68645E",
+          "charcoal-dim": "#8A857D",
+          border: "#E5E0D7",
+          "border-subtle": "#EDE8E0",
+          "border-strong": "#1A1918",
+          sand: "#E8E3DA",
+          gold: "#A38C61",
+          error: "#943A3A",
+          "error-bg": "#FDF6F6",
         },
       },
       fontFamily: {
@@ -27,7 +29,6 @@ module.exports = {
           '"Cormorant Garamond"',
           "Didot",
           '"Bodoni MT"',
-          "Cinzel",
           '"Playfair Display"',
           "Georgia",
           "serif",
@@ -35,15 +36,16 @@ module.exports = {
         sans: [
           '"Plus Jakarta Sans"',
           "Inter",
-          "system-ui",
           "-apple-system",
           "BlinkMacSystemFont",
+          '"Segoe UI"',
           "sans-serif",
         ],
       },
       letterSpacing: {
-        widest2: "0.2em",
-        widest3: "0.28em",
+        editorial: "0.08em",
+        wide2: "0.14em",
+        wide3: "0.22em",
       },
     },
   },

@@ -2,23 +2,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CHARINI Stories | Connect & Updates",
+  title: "CHARINI — Stay in the loop",
   description:
-    "Discover CHARINI Stories. Connect with our boutique channels and stay updated on new prints, cuts, collections, and releases.",
-  keywords: [
-    "CHARINI Stories",
-    "CHARINI",
-    "Fashion",
-    "Boutique",
-    "Designer",
-    "Prints",
-    "Collections",
-  ],
-  authors: [{ name: "CHARINI Stories" }],
+    "Be the first to hear about new prints, new cuts, collections and special releases from CHARINI.",
+  keywords: ["CHARINI", "Fashion", "Designer", "Prints", "Cuts", "Collections"],
+  authors: [{ name: "CHARINI" }],
   openGraph: {
-    title: "CHARINI Stories | Connect & Updates",
-    description: "Discover CHARINI Stories. Connect with our boutique channels.",
+    title: "CHARINI — Stay in the loop",
+    description:
+      "Be the first to hear about new prints, new cuts, collections and special releases from CHARINI.",
     type: "website",
+    siteName: "CHARINI",
   },
   robots: {
     index: true,
@@ -27,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#033431",
+  themeColor: "#FAF8F5",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -40,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-brand-neutral-bg text-brand-dark">
-      <body className="min-h-screen bg-brand-neutral-bg text-brand-dark font-sans antialiased selection:bg-brand-green selection:text-brand-neutral-bg">
+    <html lang="en" className="bg-charini-bg text-charini-charcoal">
+      <body className="min-h-screen bg-charini-bg font-sans antialiased selection:bg-charini-charcoal selection:text-charini-bg">
         {children}
       </body>
     </html>

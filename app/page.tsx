@@ -1,13 +1,14 @@
-import ConnectPage from "@/components/ConnectPage";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import { getActiveInterestTags } from "@/lib/subscriptions/interest-tags";
 
-interface PageProps {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}
+export const dynamic = "force-dynamic";
 
-export default async function HomePage({ searchParams }: PageProps) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  const rawSource = resolvedParams?.source;
-  const source = typeof rawSource === "string" && rawSource.trim() ? rawSource.trim() : "direct";
+export default async function HomePage() {
+  const tags = await getActiveInterestTags();
 
-  return <ConnectPage source={source} />;
+  return (
+    <div className="editorial-canvas min-h-screen flex flex-col justify-between">
+      <NewsletterSignup initialTags={tags} />
+    </div>
+  );
 }
