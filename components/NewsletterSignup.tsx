@@ -1057,12 +1057,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         </main>
       )}
 
-      {/* Brand Luxury Micro-Footer */}
-      <footer className="w-full border-t border-charini-border/60 mt-12 pt-6 pb-4 flex flex-col items-center gap-1.5 text-center">
-        <p className="font-sans text-[10px] text-charini-charcoal-dim tracking-[0.2em] uppercase font-medium">
-          CHARINI &bull; Colombo &bull; Pop-Up Edition
-        </p>
-      </footer>
+
 
       {/* Instagram Selection Modal */}
       <InstagramModal
