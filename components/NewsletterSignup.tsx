@@ -16,111 +16,181 @@ interface NewsletterSignupProps {
   initialTags: InterestTag[];
 }
 
-function AtelierConnectCard() {
+interface QuickConnectBarProps {
+  onOpenInstagram: () => void;
+}
+
+function QuickConnectBar({ onOpenInstagram }: QuickConnectBarProps) {
   return (
-    <div className="w-full mb-7 p-3.5 sm:p-4 rounded-2xl bg-white border border-charini-border shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-left">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <span className="font-sans text-[10px] font-semibold tracking-[0.2em] uppercase text-charini-charcoal-dim">
-          Atelier &amp; Connect
-        </span>
-        <span className="font-sans text-[10px] text-charini-charcoal-muted tracking-wide">
-          Direct Channels
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-        {/* CHARINI Official Instagram */}
-        <a
-          href="https://www.instagram.com/charini_official/?hl=en"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border border-charini-border bg-[#FAF9F7] hover:bg-white hover:border-charini-charcoal transition-all duration-150 group active:scale-[0.98]"
+    <div className="w-full mb-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+        {/* Instagram Button */}
+        <button
+          type="button"
+          onClick={onOpenInstagram}
+          className="flex items-center justify-center gap-1.5 min-h-[42px] px-2 py-2 rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] active:scale-[0.98] transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.02)] cursor-pointer group"
         >
-          <div className="w-7 h-7 rounded-full bg-white border border-charini-border flex items-center justify-center shrink-0 group-hover:border-charini-charcoal group-hover:scale-105 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-            <svg
-              className="w-3.5 h-3.5 text-charini-charcoal"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-sans text-[9px] uppercase tracking-wider text-charini-charcoal-muted font-medium">Instagram</span>
-            <span className="font-sans text-xs font-medium text-charini-charcoal truncate">@charini_official</span>
-          </div>
-        </a>
+          <svg
+            className="w-3.5 h-3.5 text-charini-charcoal shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+          </svg>
+          <span className="font-sans text-[11px] sm:text-xs font-medium tracking-wide">Instagram</span>
+        </button>
 
-        {/* CHARINI STORIES Instagram */}
-        <a
-          href="https://www.instagram.com/charini.stories/?hl=en"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border border-charini-border bg-[#FAF9F7] hover:bg-white hover:border-charini-charcoal transition-all duration-150 group active:scale-[0.98]"
-        >
-          <div className="w-7 h-7 rounded-full bg-white border border-charini-border flex items-center justify-center shrink-0 group-hover:border-charini-charcoal group-hover:scale-105 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-            <svg
-              className="w-3.5 h-3.5 text-charini-charcoal"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-sans text-[9px] uppercase tracking-wider text-charini-charcoal-muted font-medium">Stories</span>
-            <span className="font-sans text-xs font-medium text-charini-charcoal truncate">@charini.stories</span>
-          </div>
-        </a>
-
-        {/* WhatsApp Concierge */}
+        {/* Contact Button */}
         <a
           href="https://wa.me/94770468888"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border border-charini-border bg-[#FAF9F7] hover:bg-white hover:border-charini-charcoal transition-all duration-150 group active:scale-[0.98]"
+          className="flex items-center justify-center gap-1.5 min-h-[42px] px-2 py-2 rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] active:scale-[0.98] transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.02)] group"
         >
-          <div className="w-7 h-7 rounded-full bg-white border border-charini-border flex items-center justify-center shrink-0 group-hover:border-charini-charcoal group-hover:scale-105 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-            <svg
-              className="w-3.5 h-3.5 text-charini-charcoal"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-            </svg>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-sans text-[9px] uppercase tracking-wider text-charini-charcoal-muted font-medium">WhatsApp</span>
-            <span className="font-sans text-xs font-medium text-charini-charcoal truncate">+94 77 046 8888</span>
-          </div>
+          <svg
+            className="w-3.5 h-3.5 text-charini-charcoal shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          <span className="font-sans text-[11px] sm:text-xs font-medium tracking-wide">Contact</span>
         </a>
 
-        {/* Colombo Flagship Store */}
+        {/* Location Button */}
         <a
           href="https://maps.app.goo.gl/KdDbdkjUZBjs33qUA"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border border-charini-border bg-[#FAF9F7] hover:bg-white hover:border-charini-charcoal transition-all duration-150 group active:scale-[0.98]"
+          className="flex items-center justify-center gap-1.5 min-h-[42px] px-2 py-2 rounded-full border border-charini-border bg-white text-charini-charcoal hover:border-charini-charcoal hover:bg-[#FAF9F7] active:scale-[0.98] transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.02)] group"
         >
-          <div className="w-7 h-7 rounded-full bg-white border border-charini-border flex items-center justify-center shrink-0 group-hover:border-charini-charcoal group-hover:scale-105 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+          <svg
+            className="w-3.5 h-3.5 text-charini-charcoal shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span className="font-sans text-[11px] sm:text-xs font-medium tracking-wide">Location</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+interface InstagramModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="instagram-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[340px] p-6 bg-[#FAF9F7] border border-charini-border rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.14)] text-center flex flex-col items-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-4 right-4 text-charini-charcoal-dim hover:text-charini-charcoal p-1.5 rounded-full hover:bg-black/5 transition-colors cursor-pointer"
+        >
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        {/* Instagram Icon Badge */}
+        <div className="w-10 h-10 rounded-full bg-white border border-charini-border flex items-center justify-center mb-3 shadow-sm">
+          <svg
+            className="w-5 h-5 text-charini-charcoal"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+          </svg>
+        </div>
+
+        {/* Title & Subtitle */}
+        <h3
+          id="instagram-modal-title"
+          className="font-serif text-xl text-charini-charcoal font-normal tracking-tight mb-1"
+        >
+          Instagram
+        </h3>
+        <p className="font-sans text-xs text-charini-charcoal-muted mb-5">
+          Select an account to explore
+        </p>
+
+        {/* Account Options */}
+        <div className="w-full flex flex-col gap-2.5">
+          {/* CHARINI Option */}
+          <a
+            href="https://www.instagram.com/charini_official/?hl=en"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
+          >
+            <div className="flex flex-col text-left">
+              <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal">
+                CHARINI
+              </span>
+              <span className="font-sans text-[10px] text-charini-charcoal-muted">
+                Main Label
+              </span>
+            </div>
             <svg
-              className="w-3.5 h-3.5 text-charini-charcoal"
+              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -128,15 +198,39 @@ function AtelierConnectCard() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
+              <polyline points="9 18 15 12 9 6" />
             </svg>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-sans text-[9px] uppercase tracking-wider text-charini-charcoal-muted font-medium">Flagship Store</span>
-            <span className="font-sans text-xs font-medium text-charini-charcoal truncate">Colombo</span>
-          </div>
-        </a>
+          </a>
+
+          {/* CHARINI STORIES Option */}
+          <a
+            href="https://www.instagram.com/charini.stories/?hl=en"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
+          >
+            <div className="flex flex-col text-left">
+              <span className="font-sans text-xs font-semibold tracking-wider uppercase text-charini-charcoal">
+                CHARINI STORIES
+              </span>
+              <span className="font-sans text-[10px] text-charini-charcoal-muted">
+                Prints &amp; Silks
+              </span>
+            </div>
+            <svg
+              className="w-4 h-4 text-charini-charcoal-dim group-hover:text-charini-charcoal group-hover:translate-x-0.5 transition-all"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -161,6 +255,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<string | null>(null);
+  const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
 
   const renderTimeRef = useRef<number>(0);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -452,7 +547,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
               <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[320px] mb-8">
                 Thank you for subscribing. We look forward to welcoming you at the CHARINI pop-up!
               </p>
-              <AtelierConnectCard />
+              <QuickConnectBar onOpenInstagram={() => setIsInstagramModalOpen(true)} />
             </div>
           ) : (
             <div className="w-full">
@@ -625,7 +720,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           </div>
 
           {/* Quick Connect & Atelier Hub */}
-          <AtelierConnectCard />
+          <QuickConnectBar onOpenInstagram={() => setIsInstagramModalOpen(true)} />
 
           {/* Section Divider */}
           <div className="relative flex py-2 items-center mb-6">
@@ -968,6 +1063,12 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           CHARINI &bull; Colombo &bull; Pop-Up Edition
         </p>
       </footer>
+
+      {/* Instagram Selection Modal */}
+      <InstagramModal
+        isOpen={isInstagramModalOpen}
+        onClose={() => setIsInstagramModalOpen(false)}
+      />
     </div>
   );
 }
