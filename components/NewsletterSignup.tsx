@@ -334,7 +334,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                   Thank you for subscribing.
                 </p>
                 <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[360px] mx-auto font-normal">
-                  Complete your VIP profile for exclusive pop-up invites &amp; personal styling updates (optional).
+                  Complete your profile for private invitations &amp; personal styling updates (optional).
                 </p>
               </div>
 
@@ -445,7 +445,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                     />
                   </div>
                   <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
-                    Receive VIP styling previews &amp; collection drops directly on WhatsApp.
+                    Private previews &amp; collection releases directly on WhatsApp.
                   </p>
                 </div>
 
