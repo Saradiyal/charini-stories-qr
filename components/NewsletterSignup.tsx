@@ -459,7 +459,6 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const phoneCountryCode = activeCountry.dialCode;
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<string[]>(["charini", "charini-stories"]);
-  const [isInterestsExpanded, setIsInterestsExpanded] = useState(false);
   const [specificCutsNote, setSpecificCutsNote] = useState("");
   const [consent, setConsent] = useState(false);
 
@@ -529,9 +528,6 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         ];
 
   const isSpecificCutsSelected = selectedInterests.includes(SPECIFIC_CUTS_SLUG);
-  const selectedNonStoreCount = selectedInterests.filter(
-    (slug) => !(STORE_SLUGS as readonly string[]).includes(slug)
-  ).length;
 
   const hasStoreSelected = selectedInterests.some((s) =>
     (STORE_SLUGS as readonly string[]).includes(s)
@@ -844,10 +840,10 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
             </h1>
             <div className="space-y-2.5 max-w-[380px] mx-auto">
               <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed font-normal">
-                Where stories become wearable expressions of art. A celebration of creativity, craftsmanship and individuality, drawing inspiration from Sri Lanka and beyond.
+                Where stories become wearable art. Inspired by Sri Lanka and beyond, celebrating creativity, craftsmanship and individuality.
               </p>
               <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed font-normal">
-                Join our circle for first access to new collections, private previews and exclusive invitations.
+                Join our circle for exclusive previews, new collections and private invitations.
               </p>
             </div>
           </div>
@@ -1098,19 +1094,16 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-3.5">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 {availableStoreTags.map((tag) => {
                   const isSelected = selectedInterests.includes(tag.slug);
                   const isCharini = tag.slug === "charini";
                   const logoSrc = isCharini ? "/charinilogo.png" : "/charinistorieslogo.png";
-                  const subtitle = isCharini
-                    ? "Contemporary Couture & Signature Silhouettes"
-                    : "Ready-to-Wear with a Story";
 
                   return (
                     <label
                       key={tag.slug}
-                      className={`flex items-center gap-3.5 pl-4 sm:pl-4.5 pr-5 py-3.5 min-h-[58px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.99] ${
+                      className={`flex items-center justify-center gap-2 sm:gap-2.5 px-3 py-3 min-h-[48px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
                         isSelected
                           ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-sm"
                           : errorField === "stores"
@@ -1126,46 +1119,37 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                         aria-label={tag.label}
                       />
 
-                      {/* Store Logo Circle with proper margin from pill curve and inner breathing room */}
+                      {/* Store Logo Circle */}
                       <div
-                        className={`w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs ml-1 ${
+                        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs ${
                           isCharini
                             ? isSelected
-                              ? "bg-white border border-white/30 p-1.5"
-                              : "bg-white border border-charini-border/80 p-1.5"
+                              ? "bg-white border border-white/30 p-1"
+                              : "bg-white border border-charini-border/80 p-1"
                             : isSelected
-                            ? "bg-[#0D352B] border border-white/30 p-1"
-                            : "bg-[#0D352B] border border-[#0D352B] p-1"
+                            ? "bg-[#0D352B] border border-white/30 p-0.5"
+                            : "bg-[#0D352B] border border-[#0D352B] p-0.5"
                         }`}
                       >
                         <Image
                           src={logoSrc}
                           alt={tag.label}
-                          width={36}
-                          height={36}
+                          width={30}
+                          height={30}
                           className="w-full h-full object-contain"
                         />
                       </div>
 
-                      {/* Store Label & Subtitle */}
-                      <div className="flex flex-col text-left flex-1 min-w-0">
-                        <span className="font-sans text-xs font-semibold tracking-wider uppercase truncate">
-                          {tag.label}
-                        </span>
-                        <span
-                          className={`font-sans text-[11px] truncate ${
-                            isSelected ? "text-white/70" : "text-charini-charcoal-muted"
-                          }`}
-                        >
-                          {subtitle}
-                        </span>
-                      </div>
+                      {/* Store Label */}
+                      <span className="font-sans text-[11px] sm:text-xs font-semibold tracking-wider uppercase truncate">
+                        {tag.label}
+                      </span>
 
-                      {/* Visual indicator */}
+                      {/* Visual indicator dot */}
                       {isSelected && (
                         <span
                           aria-hidden="true"
-                          className="w-2 h-2 rounded-full bg-white shrink-0 inline-block mr-1"
+                          className="w-1.5 h-1.5 rounded-full bg-white shrink-0 inline-block ml-0.5"
                         />
                       )}
                     </label>
@@ -1174,135 +1158,99 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
               </div>
             </div>
 
-            {/* 3b. Expandable Interests & Updates Accordion */}
+            {/* 3b. What would you like to hear about? */}
             <div className="w-full flex flex-col">
-              <button
-                type="button"
-                onClick={() => setIsInterestsExpanded((prev) => !prev)}
-                className="w-full flex items-center justify-between py-2.5 px-4 rounded-full border border-charini-border bg-[#FAF9F7] hover:border-charini-charcoal hover:bg-white text-charini-charcoal text-xs font-medium transition-all duration-150 group cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
-                aria-expanded={isInterestsExpanded}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-4 h-4 rounded-full bg-white border border-charini-border flex items-center justify-center text-charini-charcoal-dim group-hover:text-charini-charcoal text-xs shrink-0">
-                    {isInterestsExpanded ? "−" : "+"}
-                  </span>
-                  <span className="font-sans text-[11px] sm:text-xs font-medium tracking-wide truncate">
-                    Specific Interests &amp; Updates (Optional)
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 ml-2">
-                  {selectedNonStoreCount > 0 && (
-                    <span className="text-[10px] bg-charini-charcoal text-white rounded-full px-2 py-0.5 font-semibold">
-                      {selectedNonStoreCount} selected
-                    </span>
-                  )}
-                  <svg
-                    className={`w-3.5 h-3.5 text-charini-charcoal-dim group-hover:text-charini-charcoal transition-transform duration-200 ${
-                      isInterestsExpanded ? "rotate-180" : ""
-                    }`}
-                    viewBox="0 0 10 6"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M1 1L5 5L9 1" />
-                  </svg>
-                </div>
-              </button>
+              <div className="flex items-baseline justify-between mb-2.5">
+                <span className="font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal">
+                  What would you like to hear about?
+                </span>
+                <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                  Optional
+                </span>
+              </div>
 
-              {/* Expanded Panel */}
-              {isInterestsExpanded && (
-                <div className="mt-3 p-4 bg-[#FAF9F7] border border-charini-border rounded-2xl flex flex-col gap-3.5 animate-fade-in shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div>
-                    <span className="font-sans text-[10px] font-semibold tracking-[0.14em] uppercase text-charini-charcoal block mb-2">
-                      What would you like to hear about?
+              <div className="flex flex-wrap gap-2">
+                {availableUpdateTags.map((tag) => {
+                  const isSelected = selectedInterests.includes(tag.slug);
+                  return (
+                    <label
+                      key={tag.slug}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[38px] text-xs tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
+                        isSelected
+                          ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
+                          : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={isSelected}
+                        onChange={() => toggleInterest(tag.slug)}
+                        aria-label={tag.label}
+                      />
+                      {isSelected && (
+                        <span
+                          aria-hidden="true"
+                          className="w-1.5 h-1.5 rounded-full bg-white inline-block"
+                        />
+                      )}
+                      <span>{tag.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Conditional Specific Cuts Area */}
+              {isSpecificCutsSelected && (
+                <div className="mt-3 flex flex-col gap-2.5 animate-fade-in bg-[#FAF9F7] p-3.5 border border-charini-border/70 rounded-2xl">
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-sans text-[10px] font-semibold tracking-[0.14em] uppercase text-charini-charcoal">
+                      Cut Types:
                     </span>
-                    <div className="flex flex-wrap gap-2">
-                      {availableUpdateTags.map((tag) => {
-                        const isSelected = selectedInterests.includes(tag.slug);
-                        return (
-                          <label
-                            key={tag.slug}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] text-xs tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
-                              isSelected
-                                ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
-                                : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              className="sr-only"
-                              checked={isSelected}
-                              onChange={() => toggleInterest(tag.slug)}
-                              aria-label={tag.label}
+                    <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                      STORIES Cuts
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableCutTypeTags.map((tag) => {
+                      const isSelected = selectedInterests.includes(tag.slug);
+                      return (
+                        <label
+                          key={tag.slug}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 min-h-[32px] text-[11px] tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
+                            isSelected
+                              ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
+                              : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={isSelected}
+                            onChange={() => toggleInterest(tag.slug)}
+                            aria-label={tag.label}
+                          />
+                          {isSelected && (
+                            <span
+                              aria-hidden="true"
+                              className="w-1.5 h-1.5 rounded-full bg-white inline-block"
                             />
-                            {isSelected && (
-                              <span
-                                aria-hidden="true"
-                                className="w-1.5 h-1.5 rounded-full bg-white inline-block"
-                              />
-                            )}
-                            <span>{tag.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
+                          )}
+                          <span>{tag.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
 
-                  {/* If Specific Cuts is selected, show sub-tags & custom request note */}
-                  {isSpecificCutsSelected && (
-                    <div className="pt-2.5 border-t border-charini-border/60 flex flex-col gap-2.5 animate-fade-in">
-                      <div className="flex items-baseline justify-between">
-                        <span className="font-sans text-[10px] font-semibold tracking-[0.14em] uppercase text-charini-charcoal">
-                          Cut Types:
-                        </span>
-                        <span className="font-sans text-[10px] text-charini-charcoal-dim">
-                          STORIES Cuts
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {availableCutTypeTags.map((tag) => {
-                          const isSelected = selectedInterests.includes(tag.slug);
-                          return (
-                            <label
-                              key={tag.slug}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 min-h-[32px] text-[11px] tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
-                                isSelected
-                                  ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
-                                  : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={isSelected}
-                                onChange={() => toggleInterest(tag.slug)}
-                                aria-label={tag.label}
-                              />
-                              {isSelected && (
-                                <span
-                                  aria-hidden="true"
-                                  className="w-1.5 h-1.5 rounded-full bg-white inline-block"
-                                />
-                              )}
-                              <span>{tag.label}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-
-                      <input
-                        type="text"
-                        maxLength={500}
-                        value={specificCutsNote}
-                        onChange={(e) => setSpecificCutsNote(e.target.value)}
-                        placeholder="Any other specific cuts or requests (optional)"
-                        className="w-full min-h-[42px] px-3.5 py-2 bg-white text-xs text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full mt-1"
-                      />
-                    </div>
-                  )}
+                  {/* Custom Cut Notes input */}
+                  <input
+                    type="text"
+                    maxLength={500}
+                    value={specificCutsNote}
+                    onChange={(e) => setSpecificCutsNote(e.target.value)}
+                    placeholder="Any other specific cuts or requests (optional)"
+                    className="w-full min-h-[42px] px-3.5 py-2 bg-white text-xs text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full mt-1"
+                  />
                 </div>
               )}
             </div>
