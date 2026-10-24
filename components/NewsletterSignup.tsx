@@ -9,7 +9,12 @@ import type {
   SubscribeResponse,
 } from "@/lib/subscriptions/contract";
 import { ERROR_MESSAGES } from "@/lib/subscriptions/contract";
-import { STORE_SLUGS } from "@/lib/config";
+import {
+  STORE_SLUGS,
+  SPECIFIC_CUTS_SLUG,
+  CUT_TYPE_SLUGS,
+  CUT_TYPE_OPTIONS,
+} from "@/lib/config";
 import { TOP_COUNTRIES, ALL_COUNTRIES } from "@/lib/countries";
 import RetailInquiryModal from "./RetailInquiryModal";
 
@@ -454,6 +459,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const phoneCountryCode = activeCountry.dialCode;
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<string[]>(["charini", "charini-stories"]);
+  const [isInterestsExpanded, setIsInterestsExpanded] = useState(false);
+  const [specificCutsNote, setSpecificCutsNote] = useState("");
   const [consent, setConsent] = useState(false);
 
   // Profile details state (on completion screen if they want to give last name)
@@ -494,6 +501,37 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           { slug: "charini", label: "CHARINI" },
           { slug: "charini-stories", label: "CHARINI STORIES" },
         ];
+
+  // Cut type tags (Versatile Skirts, Shirt Dresses, etc.)
+  const cutTypeTagsFromProps = initialTags.filter((tag) =>
+    (CUT_TYPE_SLUGS as readonly string[]).includes(tag.slug as any)
+  );
+  const availableCutTypeTags: InterestTag[] =
+    cutTypeTagsFromProps.length > 0
+      ? cutTypeTagsFromProps
+      : (CUT_TYPE_OPTIONS as unknown as InterestTag[]);
+
+  // Main updates tags (New Prints, New Cuts, Collections, Special Releases, Specific Cuts)
+  const updateTags = initialTags.filter(
+    (tag) =>
+      !(STORE_SLUGS as readonly string[]).includes(tag.slug) &&
+      !(CUT_TYPE_SLUGS as readonly string[]).includes(tag.slug as any)
+  );
+  const availableUpdateTags: InterestTag[] =
+    updateTags.length > 0
+      ? updateTags
+      : [
+          { slug: "new-prints", label: "New Prints" },
+          { slug: "new-cuts", label: "New Cuts" },
+          { slug: "collections", label: "Collections" },
+          { slug: "special-releases", label: "Special Releases" },
+          { slug: "specific-cuts", label: "Specific Cuts" },
+        ];
+
+  const isSpecificCutsSelected = selectedInterests.includes(SPECIFIC_CUTS_SLUG);
+  const selectedNonStoreCount = selectedInterests.filter(
+    (slug) => !(STORE_SLUGS as readonly string[]).includes(slug)
+  ).length;
 
   const hasStoreSelected = selectedInterests.some((s) =>
     (STORE_SLUGS as readonly string[]).includes(s)
@@ -601,12 +639,29 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     try {
       const elapsedMs = renderTimeRef.current > 0 ? Date.now() - renderTimeRef.current : 2000;
 
+      const selectedCutLabels = availableCutTypeTags
+        .filter((tag) => selectedInterests.includes(tag.slug))
+        .map((tag) => tag.label);
+
+      let finalNote: string | null = null;
+      if (isSpecificCutsSelected) {
+        const userTypedNote = specificCutsNote.trim();
+        if (selectedCutLabels.length > 0 && userTypedNote) {
+          finalNote = `${selectedCutLabels.join(", ")} — ${userTypedNote}`;
+        } else if (selectedCutLabels.length > 0) {
+          finalNote = selectedCutLabels.join(", ");
+        } else if (userTypedNote) {
+          finalNote = userTypedNote;
+        }
+      }
+
       const payload: SubscribeRequestBody = {
         firstName: trimmedFirstName,
         email: contactMethod === "email" ? trimmedEmail : null,
         phoneCountryCode: contactMethod === "whatsapp" ? phoneCountryCode : null,
         phoneNumber: contactMethod === "whatsapp" ? cleanPhone : null,
         interests: selectedInterests,
+        specificCutsNote: finalNote,
         marketingConsent: consent,
         source: campaignName,
         preferredContactMethod: contactMethod,
@@ -1117,6 +1172,139 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                   );
                 })}
               </div>
+            </div>
+
+            {/* 3b. Expandable Interests & Updates Accordion */}
+            <div className="w-full flex flex-col">
+              <button
+                type="button"
+                onClick={() => setIsInterestsExpanded((prev) => !prev)}
+                className="w-full flex items-center justify-between py-2.5 px-4 rounded-full border border-charini-border bg-[#FAF9F7] hover:border-charini-charcoal hover:bg-white text-charini-charcoal text-xs font-medium transition-all duration-150 group cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                aria-expanded={isInterestsExpanded}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-4 h-4 rounded-full bg-white border border-charini-border flex items-center justify-center text-charini-charcoal-dim group-hover:text-charini-charcoal text-xs shrink-0">
+                    {isInterestsExpanded ? "−" : "+"}
+                  </span>
+                  <span className="font-sans text-[11px] sm:text-xs font-medium tracking-wide truncate">
+                    Specific Interests &amp; Updates (Optional)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  {selectedNonStoreCount > 0 && (
+                    <span className="text-[10px] bg-charini-charcoal text-white rounded-full px-2 py-0.5 font-semibold">
+                      {selectedNonStoreCount} selected
+                    </span>
+                  )}
+                  <svg
+                    className={`w-3.5 h-3.5 text-charini-charcoal-dim group-hover:text-charini-charcoal transition-transform duration-200 ${
+                      isInterestsExpanded ? "rotate-180" : ""
+                    }`}
+                    viewBox="0 0 10 6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M1 1L5 5L9 1" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* Expanded Panel */}
+              {isInterestsExpanded && (
+                <div className="mt-3 p-4 bg-[#FAF9F7] border border-charini-border rounded-2xl flex flex-col gap-3.5 animate-fade-in shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <div>
+                    <span className="font-sans text-[10px] font-semibold tracking-[0.14em] uppercase text-charini-charcoal block mb-2">
+                      What would you like to hear about?
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {availableUpdateTags.map((tag) => {
+                        const isSelected = selectedInterests.includes(tag.slug);
+                        return (
+                          <label
+                            key={tag.slug}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] text-xs tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
+                              isSelected
+                                ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
+                                : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="sr-only"
+                              checked={isSelected}
+                              onChange={() => toggleInterest(tag.slug)}
+                              aria-label={tag.label}
+                            />
+                            {isSelected && (
+                              <span
+                                aria-hidden="true"
+                                className="w-1.5 h-1.5 rounded-full bg-white inline-block"
+                              />
+                            )}
+                            <span>{tag.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* If Specific Cuts is selected, show sub-tags & custom request note */}
+                  {isSpecificCutsSelected && (
+                    <div className="pt-2.5 border-t border-charini-border/60 flex flex-col gap-2.5 animate-fade-in">
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-sans text-[10px] font-semibold tracking-[0.14em] uppercase text-charini-charcoal">
+                          Cut Types:
+                        </span>
+                        <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                          STORIES Cuts
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {availableCutTypeTags.map((tag) => {
+                          const isSelected = selectedInterests.includes(tag.slug);
+                          return (
+                            <label
+                              key={tag.slug}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 min-h-[32px] text-[11px] tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
+                                isSelected
+                                  ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
+                                  : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={isSelected}
+                                onChange={() => toggleInterest(tag.slug)}
+                                aria-label={tag.label}
+                              />
+                              {isSelected && (
+                                <span
+                                  aria-hidden="true"
+                                  className="w-1.5 h-1.5 rounded-full bg-white inline-block"
+                                />
+                              )}
+                              <span>{tag.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      <input
+                        type="text"
+                        maxLength={500}
+                        value={specificCutsNote}
+                        onChange={(e) => setSpecificCutsNote(e.target.value)}
+                        placeholder="Any other specific cuts or requests (optional)"
+                        className="w-full min-h-[42px] px-3.5 py-2 bg-white text-xs text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full mt-1"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 4. Marketing Consent Checkbox */}
