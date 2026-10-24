@@ -1055,7 +1055,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                   return (
                     <label
                       key={tag.slug}
-                      className={`flex items-center gap-3.5 px-4.5 py-3.5 min-h-[58px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.99] ${
+                      className={`flex items-center gap-3.5 pl-4 sm:pl-4.5 pr-5 py-3.5 min-h-[58px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.99] ${
                         isSelected
                           ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-sm"
                           : errorField === "stores"
@@ -1071,20 +1071,24 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                         aria-label={tag.label}
                       />
 
-                      {/* Store Logo Circle */}
+                      {/* Store Logo Circle with proper margin from pill curve and inner breathing room */}
                       <div
-                        className={`w-8 h-8 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs border ${
+                        className={`w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs ml-1 ${
                           isCharini
-                            ? "bg-white border-charini-border/70 p-0.5"
-                            : "bg-[#0D352B] border-[#0D352B]"
+                            ? isSelected
+                              ? "bg-white border border-white/30 p-1.5"
+                              : "bg-white border border-charini-border/80 p-1.5"
+                            : isSelected
+                            ? "bg-[#0D352B] border border-white/30 p-1"
+                            : "bg-[#0D352B] border border-[#0D352B] p-1"
                         }`}
                       >
                         <Image
                           src={logoSrc}
                           alt={tag.label}
-                          width={32}
-                          height={32}
-                          className={`w-full h-full ${isCharini ? "object-contain" : "object-cover"}`}
+                          width={36}
+                          height={36}
+                          className="w-full h-full object-contain"
                         />
                       </div>
 
