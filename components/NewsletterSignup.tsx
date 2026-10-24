@@ -2,19 +2,16 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import type {
   InterestTag,
   SubscribeRequestBody,
   SubscribeResponse,
 } from "@/lib/subscriptions/contract";
 import { ERROR_MESSAGES } from "@/lib/subscriptions/contract";
-import {
-  SPECIFIC_CUTS_SLUG,
-  STORE_SLUGS,
-  CUT_TYPE_SLUGS,
-  CUT_TYPE_OPTIONS,
-} from "@/lib/config";
+import { STORE_SLUGS } from "@/lib/config";
 import { TOP_COUNTRIES, ALL_COUNTRIES } from "@/lib/countries";
+import RetailInquiryModal from "./RetailInquiryModal";
 
 interface NewsletterSignupProps {
   initialTags: InterestTag[];
@@ -169,24 +166,24 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
           id="instagram-modal-title"
           className="font-serif text-xl text-charini-charcoal font-normal tracking-tight mb-1"
         >
-          Instagram
+          Follow on Instagram
         </h3>
         <p className="font-sans text-xs text-charini-charcoal-muted mb-5">
-          Select an account to explore
+          Select an account to explore our worlds
         </p>
 
-        {/* Account Options */}
+        {/* Options */}
         <div className="w-full flex flex-col gap-2.5">
           {/* CHARINI Option */}
           <a
-            href="https://www.instagram.com/charini_official/?hl=en"
+            href="https://www.instagram.com/charinibrand/?hl=en"
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
             className="w-full flex items-center justify-between px-4 py-3 rounded-full bg-white border border-charini-border hover:border-charini-charcoal hover:bg-[#FAF9F7] text-charini-charcoal transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] active:scale-[0.98] group"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-white border border-charini-border/80 shrink-0 flex items-center justify-center p-1 overflow-hidden shadow-xs">
+              <div className="w-9 h-9 rounded-full bg-white border border-charini-border/70 p-0.5 shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
                 <Image
                   src="/charinilogo.png"
                   alt="CHARINI"
@@ -200,7 +197,7 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
                   CHARINI
                 </span>
                 <span className="font-sans text-[10px] text-charini-charcoal-muted truncate">
-                  Silky Drapes &amp; Signature Silks
+                  Contemporary Couture &amp; Silhouettes
                 </span>
               </div>
             </div>
@@ -240,7 +237,7 @@ function InstagramModal({ isOpen, onClose }: InstagramModalProps) {
                   CHARINI STORIES
                 </span>
                 <span className="font-sans text-[10px] text-charini-charcoal-muted truncate">
-                  100% Cotton &amp; Story-Based Prints
+                  Ready-to-Wear with a Story
                 </span>
               </div>
             </div>
@@ -431,67 +428,65 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
   );
 }
 
-export default function NewsletterSignup({ initialTags }: NewsletterSignupProps) {
-  const [contactMethod, setContactMethod] = useState<"email" | "phone">("email");
-  const [email, setEmail] = useState("");
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [specificCutsNote, setSpecificCutsNote] = useState("");
-  const [consent, setConsent] = useState(false);
+function formatCampaignName(param: string | null): string {
+  if (!param) return "Mumbai Pop-up";
+  const cleaned = decodeURIComponent(param).replace(/-/g, " ").trim();
+  if (!cleaned) return "Mumbai Pop-up";
+  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
-  // Profile details state (Thank You page)
-  const [subscriberId, setSubscriberId] = useState<string | null>(null);
+export default function NewsletterSignup({ initialTags }: NewsletterSignupProps) {
+  const searchParams = useSearchParams();
+
+  // Detect campaign name from query string (?campaign= or ?source=), default to "Mumbai Pop-up"
+  const rawCampaign = searchParams.get("campaign") || searchParams.get("source");
+  const campaignName = useMemo(() => formatCampaignName(rawCampaign), [rawCampaign]);
+
+  // Form states
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("IN"); // Default to India (IN)
+  const [contactMethod, setContactMethod] = useState<"whatsapp" | "email">("whatsapp");
+  const [email, setEmail] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState("IN"); // Default India +91 for Mumbai
   const activeCountry = useMemo(
     () => ALL_COUNTRIES.find((c) => c.code === selectedCountryCode) || TOP_COUNTRIES[0],
     [selectedCountryCode]
   );
   const phoneCountryCode = activeCountry.dialCode;
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(["charini", "charini-stories"]);
+  const [consent, setConsent] = useState(false);
+
+  // Profile details state (on completion screen if they want to give last name)
+  const [subscriberId, setSubscriberId] = useState<string | null>(null);
+  const [lastName, setLastName] = useState("");
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
-  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [showOptionalProfile, setShowOptionalProfile] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<string | null>(null);
+
+  // Modals
   const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isRetailModalOpen, setIsRetailModalOpen] = useState(false);
 
   const renderTimeRef = useRef<number>(0);
+  const firstNameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
-  const specificCutsInputRef = useRef<HTMLInputElement>(null);
   const storeSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     renderTimeRef.current = Date.now();
   }, []);
 
-  // 1. Store tags (CHARINI, CHARINI STORIES)
   const storeTags = initialTags.filter((tag) =>
-    (STORE_SLUGS as readonly string[]).includes(tag.slug),
+    (STORE_SLUGS as readonly string[]).includes(tag.slug)
   );
 
-  // 2. Cut type tags (Versatile Skirts, Wrap Around Skirts, Shirt Dresses, Fit and Flare, Shirts)
-  const cutTypeTagsFromProps = initialTags.filter((tag) =>
-    (CUT_TYPE_SLUGS as readonly string[]).includes(tag.slug as any),
-  );
-  const availableCutTypeTags: InterestTag[] =
-    cutTypeTagsFromProps.length > 0
-      ? cutTypeTagsFromProps
-      : (CUT_TYPE_OPTIONS as unknown as InterestTag[]);
-
-  // 3. Main updates tags (New Prints, New Cuts, Collections, Special Releases, Specific Cuts)
-  const updateTags = initialTags.filter(
-    (tag) =>
-      !(STORE_SLUGS as readonly string[]).includes(tag.slug) &&
-      !(CUT_TYPE_SLUGS as readonly string[]).includes(tag.slug as any),
-  );
-
-  // Fallback if tags from DB are missing store slugs
   const availableStoreTags =
     storeTags.length > 0
       ? storeTags
@@ -500,33 +495,14 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           { slug: "charini-stories", label: "CHARINI STORIES" },
         ];
 
-  const selectedStores = selectedInterests.filter((s) =>
-    (STORE_SLUGS as readonly string[]).includes(s),
+  const hasStoreSelected = selectedInterests.some((s) =>
+    (STORE_SLUGS as readonly string[]).includes(s)
   );
-  const hasStoreSelected = selectedStores.length > 0;
-  const isStoriesSelected = selectedInterests.includes("charini-stories");
-  const isSpecificCutsSelected = selectedInterests.includes(SPECIFIC_CUTS_SLUG);
-
-  // Cut type tags appear when STORIES (or both stores) AND Specific Cuts are selected
-  const showCutTypeTags = isStoriesSelected && isSpecificCutsSelected;
 
   const toggleInterest = (slug: string) => {
     setSelectedInterests((prev) => {
       const isSelected = prev.includes(slug);
       if (isSelected) {
-        if (slug === SPECIFIC_CUTS_SLUG) {
-          setSpecificCutsNote("");
-          // When Specific Cuts is deselected, also deselect any cut type tags
-          return prev.filter(
-            (s) => s !== slug && !(CUT_TYPE_SLUGS as readonly string[]).includes(s as any),
-          );
-        }
-        if (slug === "charini-stories") {
-          // If STORIES is deselected and only CHARINI remains, remove cut type tags
-          return prev.filter(
-            (s) => s !== slug && !(CUT_TYPE_SLUGS as readonly string[]).includes(s as any),
-          );
-        }
         return prev.filter((s) => s !== slug);
       } else {
         return [...prev, slug];
@@ -539,14 +515,23 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     }
   };
 
-  const handleUpdateTagClick = (slug: string) => {
-    if (!hasStoreSelected) {
-      setErrorMessage("Please select a store (CHARINI or CHARINI STORIES) first.");
-      setErrorField("stores");
-      storeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
+  const handlePhoneChange = (val: string) => {
+    // If user pastes/types with +, detect matching country code
+    if (val.startsWith("+")) {
+      const match = ALL_COUNTRIES.find((c) => val.startsWith(c.dialCode));
+      if (match) {
+        setSelectedCountryCode(match.code);
+        const remainder = val.slice(match.dialCode.length).trim().replace(/[^\d\s-]/g, "");
+        setPhoneNumber(remainder);
+        return;
+      }
     }
-    toggleInterest(slug);
+    // Auto-strip leading 0 if Indian number (+91)
+    let clean = val.replace(/[^\d\s-]/g, "");
+    if (activeCountry.code === "IN" && clean.startsWith("0")) {
+      clean = clean.replace(/^0+/, "");
+    }
+    setPhoneNumber(clean);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -554,10 +539,19 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     setErrorMessage(null);
     setErrorField(null);
 
+    const trimmedFirstName = firstName.trim();
     const trimmedEmail = email.trim();
     const cleanPhone = phoneNumber.replace(/\D/g, "");
 
-    // 1. Validate contact presence & format depending on chosen method
+    // 1. Validate First Name
+    if (!trimmedFirstName) {
+      setErrorMessage("Please enter your first name.");
+      setErrorField("firstName");
+      firstNameInputRef.current?.focus();
+      return;
+    }
+
+    // 2. Validate Contact Channel
     if (contactMethod === "email") {
       if (!trimmedEmail) {
         setErrorMessage(ERROR_MESSAGES.email_required);
@@ -587,17 +581,17 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
       }
     }
 
-    // 2. Validate at least one store selected
+    // 3. Validate at least one brand selected
     if (!hasStoreSelected) {
-      setErrorMessage(ERROR_MESSAGES.store_required);
+      setErrorMessage("Please select at least one brand (CHARINI or CHARINI STORIES).");
       setErrorField("stores");
       storeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
-    // 3. Validate marketing consent
+    // 4. Validate marketing consent
     if (!consent) {
-      setErrorMessage(ERROR_MESSAGES.consent_required);
+      setErrorMessage("Please confirm your consent to receive updates.");
       setErrorField("consent");
       return;
     }
@@ -607,30 +601,15 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     try {
       const elapsedMs = renderTimeRef.current > 0 ? Date.now() - renderTimeRef.current : 2000;
 
-      // If cut type tags were selected, combine them into specificCutsNote for immediate clarity
-      const selectedCutLabels = availableCutTypeTags
-        .filter((tag) => selectedInterests.includes(tag.slug))
-        .map((tag) => tag.label);
-
-      let finalNote: string | null = null;
-      if (isSpecificCutsSelected) {
-        const userTypedNote = specificCutsNote.trim();
-        if (selectedCutLabels.length > 0 && userTypedNote) {
-          finalNote = `${selectedCutLabels.join(", ")} — ${userTypedNote}`;
-        } else if (selectedCutLabels.length > 0) {
-          finalNote = selectedCutLabels.join(", ");
-        } else if (userTypedNote) {
-          finalNote = userTypedNote;
-        }
-      }
-
       const payload: SubscribeRequestBody = {
+        firstName: trimmedFirstName,
         email: contactMethod === "email" ? trimmedEmail : null,
-        phoneCountryCode: contactMethod === "phone" ? phoneCountryCode : null,
-        phoneNumber: contactMethod === "phone" ? cleanPhone : null,
+        phoneCountryCode: contactMethod === "whatsapp" ? phoneCountryCode : null,
+        phoneNumber: contactMethod === "whatsapp" ? cleanPhone : null,
         interests: selectedInterests,
-        specificCutsNote: finalNote,
         marketingConsent: consent,
+        source: campaignName,
+        preferredContactMethod: contactMethod,
         elapsedMs,
       };
 
@@ -647,12 +626,12 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           const message = ERROR_MESSAGES[data.code] || ERROR_MESSAGES.invalid_request;
           setErrorMessage(message);
           setErrorField(data.field || null);
-          if (data.field === "email") {
+          if (data.field === "firstName") {
+            firstNameInputRef.current?.focus();
+          } else if (data.field === "email") {
             emailInputRef.current?.focus();
           } else if (data.field === "phone") {
             phoneInputRef.current?.focus();
-          } else if (data.field === "stores") {
-            storeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         } else {
           setErrorMessage(ERROR_MESSAGES.server_error);
@@ -664,7 +643,6 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         setSubscriberId(data.subscriberId);
       }
 
-      // Success verified by database
       setIsSuccess(true);
     } catch {
       setErrorMessage(ERROR_MESSAGES.network);
@@ -673,48 +651,23 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     }
   };
 
-  const handlePhoneChange = (val: string) => {
-    // If user pastes/types with +, detect matching country code
-    if (val.startsWith("+")) {
-      const match = ALL_COUNTRIES.find((c) => val.startsWith(c.dialCode));
-      if (match) {
-        setSelectedCountryCode(match.code);
-        const remainder = val.slice(match.dialCode.length).trim().replace(/[^\d\s-]/g, "");
-        setPhoneNumber(remainder);
-        return;
-      }
-    }
-    // Auto-strip leading 0 if Indian number (+91)
-    let clean = val.replace(/[^\d\s-]/g, "");
-    if (activeCountry.code === "IN" && clean.startsWith("0")) {
-      clean = clean.replace(/^0+/, "");
-    }
-    setPhoneNumber(clean);
-  };
-
-  const handleProfileSubmit = async (e: React.FormEvent) => {
+  const handleOptionalProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // If all profile fields are empty, mark complete
-    const isComplementaryEmpty =
-      contactMethod === "email" ? !phoneNumber.trim() : !email.trim();
-    if (!firstName.trim() && !lastName.trim() && isComplementaryEmpty) {
+    if (!lastName.trim() && !email.trim() && !phoneNumber.trim()) {
       setIsProfileSaved(true);
       return;
     }
 
     setIsSubmittingProfile(true);
-    setProfileMessage(null);
-
     try {
       const res = await fetch("/api/subscriber/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           subscriberId,
-          email: email.trim() || null,
           firstName: firstName.trim() || null,
           lastName: lastName.trim() || null,
+          email: email.trim() || null,
           phoneCountryCode: phoneNumber.trim() ? phoneCountryCode : null,
           phoneNumber: phoneNumber.trim() || null,
         }),
@@ -723,27 +676,25 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
       const data = await res.json();
       if (data.ok) {
         setIsProfileSaved(true);
-      } else {
-        setProfileMessage("Unable to save details right now. Your subscription is active!");
       }
     } catch {
-      setProfileMessage("Unable to save details right now. Your subscription is active!");
+      setIsProfileSaved(true);
     } finally {
       setIsSubmittingProfile(false);
     }
   };
 
   return (
-    <div className="w-full max-w-[440px] mx-auto px-5 py-10 sm:py-16 flex flex-col items-center">
-      {/* Brand Logo Header using Charini Logo new.png */}
-      <header className="mb-8 sm:mb-10 flex flex-col items-center">
-        <div className="relative w-[110px] sm:w-[124px] aspect-[3256/4088]">
+    <div className="w-full max-w-[440px] mx-auto px-5 py-8 sm:py-12 flex flex-col items-center">
+      {/* Brand Emblem Header */}
+      <header className="mb-6 sm:mb-8 flex flex-col items-center">
+        <div className="relative w-[115px] sm:w-[130px] aspect-[3256/4088] drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]">
           <Image
-            src="/charinilogo.png"
+            src="/brand/charini-emblem.png"
             alt="CHARINI"
             fill
             priority
-            sizes="(max-width: 640px) 110px, 124px"
+            sizes="(max-width: 640px) 115px, 130px"
             className="object-contain"
           />
         </div>
@@ -755,273 +706,199 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           aria-live="polite"
           className="w-full text-center animate-fade-in flex flex-col items-center"
         >
-          {isProfileSaved ? (
-            <div className="py-12 sm:py-16 flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-charini-charcoal text-white flex items-center justify-center mb-5 shadow-sm">
-                <svg
-                  className="w-5 h-5 stroke-white"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="2.5 6 4.8 8.5 9.5 3.5" />
-                </svg>
-              </div>
-              <p className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-normal tracking-tight mb-2">
-                You&apos;re all set.
-              </p>
-              <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[320px] mb-8">
-                Thank you for subscribing. We look forward to welcoming you at the CHARINI pop-up!
-              </p>
+          <div className="py-8 sm:py-12 flex flex-col items-center w-full">
+            {/* Elegant Checkmark Badge */}
+            <div className="w-12 h-12 rounded-full bg-charini-charcoal text-white flex items-center justify-center mb-5 shadow-sm">
+              <svg
+                className="w-5 h-5 stroke-white"
+                viewBox="0 0 12 12"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="2.5 6 4.8 8.5 9.5 3.5" />
+              </svg>
+            </div>
+
+            {/* Welcome Screen Headings */}
+            <h1 className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-normal tracking-tight mb-3">
+              Welcome to the World of CHARINI
+            </h1>
+            <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[340px] mb-8 font-normal">
+              Thank you for joining us. We look forward to sharing our newest stories, collections and exclusive invitations with you.
+            </p>
+
+            {/* Quick Connect & Atelier Hub */}
+            <div className="w-full max-w-[360px] mb-6">
               <QuickConnectBar
                 onOpenInstagram={() => setIsInstagramModalOpen(true)}
                 onOpenContact={() => setIsContactModalOpen(true)}
               />
             </div>
-          ) : (
-            <div className="w-full">
-              <div className="mb-7">
-                <p className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-normal tracking-tight mb-2">
-                  Thank you for subscribing.
-                </p>
-                <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[360px] mx-auto font-normal">
-                  Complete your profile for private invitations &amp; personal styling updates (optional).
-                </p>
-              </div>
 
-              <form onSubmit={handleProfileSubmit} noValidate className="w-full flex flex-col gap-4 text-left">
-                {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col">
+            {/* Optional profile expansion */}
+            {!isProfileSaved && (
+              <div className="w-full max-w-[360px] mt-2">
+                {!showOptionalProfile ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowOptionalProfile(true)}
+                    className="font-sans text-[11px] text-charini-charcoal-dim hover:text-charini-charcoal underline underline-offset-4 cursor-pointer transition-colors"
+                  >
+                    Add last name for personal invitations (optional) &rarr;
+                  </button>
+                ) : (
+                  <form
+                    onSubmit={handleOptionalProfileSubmit}
+                    className="flex flex-col gap-3 p-4 bg-[#FAF9F7] border border-charini-border rounded-2xl text-left animate-fade-in"
+                  >
                     <label
-                      htmlFor="first-name"
-                      className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal mb-1.5"
-                    >
-                      First Name
-                    </label>
-                    <input
-                      id="first-name"
-                      type="text"
-                      maxLength={100}
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="First name"
-                      className="w-full min-h-[46px] px-4 py-2.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor="last-name"
-                      className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal mb-1.5"
+                      htmlFor="optional-last-name"
+                      className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
                     >
                       Last Name
                     </label>
                     <input
-                      id="last-name"
+                      id="optional-last-name"
                       type="text"
-                      maxLength={100}
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Last name"
-                      className="w-full min-h-[46px] px-4 py-2.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                      placeholder="Your last name"
+                      className="w-full min-h-[42px] px-3.5 py-2 bg-white text-xs text-charini-charcoal border border-charini-border rounded-full"
                     />
-                  </div>
-                </div>
-
-                {/* Complementary Field: Phone if subscribed with Email, or Email if subscribed with Phone */}
-                {contactMethod === "email" ? (
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline justify-between mb-1.5">
-                      <label
-                        htmlFor="phone-number"
-                        className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
-                      >
-                        Contact Number
-                      </label>
-                      <span className="font-sans text-[10px] text-charini-charcoal-dim">
-                        WhatsApp (Optional)
-                      </span>
-                    </div>
-
-                    {/* Unified Curved Input Container */}
-                    <div className="flex items-center w-full min-h-[48px] bg-white border border-charini-border focus-within:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2">
-                      {/* Compact Country Code Selector */}
-                      <div className="relative flex items-center shrink-0 pl-2.5 pr-1.5 py-1 cursor-pointer">
-                        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-charini-charcoal font-medium select-none pointer-events-none">
-                          <span className="text-base leading-none">{activeCountry.flag}</span>
-                          <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-charini-charcoal">
-                            {activeCountry.short}
-                          </span>
-                          <span className="text-xs sm:text-sm text-charini-charcoal-dim">
-                            {activeCountry.dialCode}
-                          </span>
-                          <svg
-                            className="w-3 h-3 text-charini-charcoal-dim ml-0.5"
-                            viewBox="0 0 10 6"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M1 1L5 5L9 1" />
-                          </svg>
-                        </div>
-                        <select
-                          id="country-code"
-                          aria-label="Country dial code"
-                          value={selectedCountryCode}
-                          onChange={(e) => setSelectedCountryCode(e.target.value)}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        >
-                          <optgroup label="Popular">
-                            {TOP_COUNTRIES.map((c) => (
-                              <option key={`top-profile-${c.code}`} value={c.code}>
-                                {c.flag} {c.name} ({c.short} {c.dialCode})
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="All Countries">
-                            {ALL_COUNTRIES.map((c) => (
-                              <option key={`all-profile-${c.code}`} value={c.code}>
-                                {c.flag} {c.name} ({c.short} {c.dialCode})
-                              </option>
-                            ))}
-                          </optgroup>
-                        </select>
-                      </div>
-
-                      <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
-
-                      {/* Phone Number Input */}
-                      <input
-                        id="phone-number"
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel-national"
-                        value={phoneNumber}
-                        onChange={(e) => handlePhoneChange(e.target.value)}
-                        placeholder={activeCountry.code === "IN" ? "98765 43210" : "Mobile number"}
-                        className="flex-1 min-w-0 px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
-                      />
-                    </div>
-                    <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
-                      Private previews &amp; collection releases directly on WhatsApp.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline justify-between mb-1.5">
-                      <label
-                        htmlFor="profile-email"
-                        className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
-                      >
-                        Email Address
-                      </label>
-                      <span className="font-sans text-[10px] text-charini-charcoal-dim">
-                        Optional
-                      </span>
-                    </div>
-                    <input
-                      id="profile-email"
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                      className="w-full min-h-[48px] px-5 py-2.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
-                    />
-                    <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
-                      For digital lookbooks, invitations &amp; print stories.
-                    </p>
-                  </div>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingProfile}
+                      className="w-full py-2.5 rounded-full bg-charini-charcoal text-white text-[11px] font-semibold tracking-wider uppercase hover:bg-charini-charcoal-deep transition-all"
+                    >
+                      {isSubmittingProfile ? "Saving..." : "Save Details"}
+                    </button>
+                  </form>
                 )}
-
-                {profileMessage && (
-                  <div className="w-full py-2 px-3 bg-charini-error-bg border border-charini-error/30 text-charini-error text-xs text-center rounded-xl">
-                    {profileMessage}
-                  </div>
-                )}
-
-                {/* Submit Profile Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmittingProfile}
-                  className="w-full min-h-[50px] py-3.5 px-6 font-sans text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 flex items-center justify-center gap-2 mt-2 rounded-full bg-charini-charcoal hover:bg-charini-charcoal-deep text-white cursor-pointer shadow-[0_2px_8px_rgba(26,25,24,0.12)] active:scale-[0.99]"
-                >
-                  {isSubmittingProfile ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-                      <span>Saving Details...</span>
-                    </>
-                  ) : (
-                    <span>Save Details</span>
-                  )}
-                </button>
-
-                {/* Skip Link */}
-                <div className="text-center mt-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsProfileSaved(true)}
-                    className="font-sans text-[11px] text-charini-charcoal-dim hover:text-charini-charcoal underline underline-offset-4 cursor-pointer transition-colors"
-                  >
-                    I&apos;m done / Skip for now
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </section>
       ) : (
-        <main className="w-full">
-          {/* Exact Headings */}
-          <div className="text-center mb-6">
-            <h1 className="font-serif text-3xl sm:text-[38px] text-charini-charcoal font-normal tracking-tight leading-tight mb-2.5">
-              Stay in the loop.
-            </h1>
-            <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed max-w-[360px] mx-auto font-normal">
-              Be the first to hear about new prints, new cuts, collections and special releases.
-            </p>
+        <main className="w-full flex flex-col items-center">
+          {/* Campaign Edition Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-charini-charcoal/5 border border-charini-border text-[10px] sm:text-[11px] font-sans font-medium tracking-widest uppercase text-charini-charcoal mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-charini-charcoal" />
+            <span>{campaignName} Edition</span>
           </div>
 
-          {/* Quick Connect & Atelier Hub */}
+          {/* Hero Headings */}
+          <div className="text-center mb-6">
+            <h1 className="font-serif text-3xl sm:text-[38px] text-charini-charcoal font-normal tracking-tight leading-tight mb-3">
+              Enter the World of CHARINI
+            </h1>
+            <div className="space-y-2.5 max-w-[380px] mx-auto">
+              <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed font-normal">
+                Where stories become wearable expressions of art. A celebration of creativity, craftsmanship and individuality, drawing inspiration from Sri Lanka and beyond.
+              </p>
+              <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted leading-relaxed font-normal">
+                Join our circle for first access to new collections, private previews and exclusive invitations.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Connect Hub */}
           <QuickConnectBar
             onOpenInstagram={() => setIsInstagramModalOpen(true)}
             onOpenContact={() => setIsContactModalOpen(true)}
           />
 
           {/* Section Divider */}
-          <div className="relative flex py-2 items-center mb-6">
+          <div className="relative flex py-1 items-center mb-5 w-full">
             <div className="flex-grow border-t border-charini-border/70" />
             <span className="flex-shrink mx-3 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-charini-charcoal-dim">
-              Newsletter Signup
+              Join the Circle
             </span>
             <div className="flex-grow border-t border-charini-border/70" />
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-6">
-            {/* Contact Channel Selector & Input */}
+          {/* Streamlined Form (No excessive scrolling) */}
+          <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-4.5">
+            {/* 1. First Name Field */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="first-name"
+                className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal mb-1.5"
+              >
+                First Name *
+              </label>
+              <input
+                ref={firstNameInputRef}
+                id="first-name"
+                name="first-name"
+                type="text"
+                required
+                autoComplete="given-name"
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  if (errorField === "firstName") {
+                    setErrorMessage(null);
+                    setErrorField(null);
+                  }
+                }}
+                placeholder="Enter your first name"
+                className={`w-full min-h-[46px] px-5 py-2.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border ${
+                  errorField === "firstName"
+                    ? "border-charini-error focus:border-charini-error"
+                    : "border-charini-border focus:border-charini-charcoal"
+                } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]`}
+              />
+            </div>
+
+            {/* 2. Preferred Contact Method & Details */}
             <div className="w-full flex flex-col">
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="font-sans text-[11px] font-medium tracking-[0.14em] uppercase text-charini-charcoal">
-                  Subscribe Via
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal">
+                  Preferred Contact Method
                 </span>
-                <span className="font-sans text-[11px] text-charini-charcoal-dim">
-                  Email or WhatsApp
+                <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                  Choose one
                 </span>
               </div>
 
-              {/* Segmented Luxury Pill Toggle */}
-              <div className="grid grid-cols-2 p-1 bg-[#FAF9F7] border border-charini-border rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] mb-3">
+              {/* Segmented Toggle: WhatsApp vs Email */}
+              <div className="grid grid-cols-2 p-1 bg-[#FAF9F7] border border-charini-border rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] mb-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContactMethod("whatsapp");
+                    if (errorField === "phone" || errorField === "email") {
+                      setErrorMessage(null);
+                      setErrorField(null);
+                    }
+                  }}
+                  className={`py-2 px-3 text-xs font-medium rounded-full transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                    contactMethod === "whatsapp"
+                      ? "bg-charini-charcoal text-white shadow-sm"
+                      : "text-charini-charcoal-muted hover:text-charini-charcoal"
+                  }`}
+                >
+                  <svg
+                    className="w-3.5 h-3.5 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                  <span>WhatsApp</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
                     setContactMethod("email");
-                    if (errorField === "email" || errorField === "phone" || errorField === "contact") {
+                    if (errorField === "phone" || errorField === "email") {
                       setErrorMessage(null);
                       setErrorField(null);
                     }
@@ -1046,88 +923,21 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                   </svg>
                   <span>Email</span>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setContactMethod("phone");
-                    if (errorField === "email" || errorField === "phone" || errorField === "contact") {
-                      setErrorMessage(null);
-                      setErrorField(null);
-                    }
-                  }}
-                  className={`py-2 px-3 text-xs font-medium rounded-full transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer select-none ${
-                    contactMethod === "phone"
-                      ? "bg-charini-charcoal text-white shadow-sm"
-                      : "text-charini-charcoal-muted hover:text-charini-charcoal"
-                  }`}
-                >
-                  <svg
-                    className="w-3.5 h-3.5 shrink-0"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                  <span>WhatsApp</span>
-                </button>
               </div>
 
-              {/* Dynamic Input based on contactMethod */}
-              {contactMethod === "email" ? (
-                <div className="flex flex-col">
-                  <input
-                    ref={emailInputRef}
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (errorField === "email" || errorField === "contact") {
-                        setErrorMessage(null);
-                        setErrorField(null);
-                      }
-                    }}
-                    placeholder="Enter your email address"
-                    aria-required="true"
-                    aria-invalid={errorField === "email" || errorField === "contact" ? "true" : undefined}
-                    aria-describedby={
-                      errorMessage && (errorField === "email" || errorField === "contact")
-                        ? "form-error"
-                        : undefined
-                    }
-                    className={`w-full min-h-[48px] px-5 py-3 bg-white text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border ${
-                      errorField === "email" || errorField === "contact"
-                        ? "border-charini-error focus:border-charini-error"
-                        : "border-charini-border focus:border-charini-charcoal"
-                    } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]`}
-                  />
-                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
-                    Lookbooks, invitations &amp; collection releases sent to your inbox.
-                  </p>
-                </div>
-              ) : (
+              {/* Dynamic Input based on selection */}
+              {contactMethod === "whatsapp" ? (
                 <div className="flex flex-col">
                   {/* WhatsApp Mobile Container */}
                   <div
-                    className={`flex items-center w-full min-h-[48px] bg-white border ${
-                      errorField === "phone" || errorField === "contact"
+                    className={`flex items-center w-full min-h-[46px] bg-white border ${
+                      errorField === "phone"
                         ? "border-charini-error focus-within:border-charini-error"
                         : "border-charini-border focus-within:border-charini-charcoal"
                     } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2`}
                   >
                     {/* Compact Country Code Selector */}
-                    <div className="relative flex items-center shrink-0 pl-2.5 pr-1.5 py-1 cursor-pointer">
+                    <div className="relative flex items-center shrink-0 pl-2 pr-1.5 py-1 cursor-pointer">
                       <div className="flex items-center gap-1.5 text-xs sm:text-sm text-charini-charcoal font-medium select-none pointer-events-none">
                         <span className="text-base leading-none">{activeCountry.flag}</span>
                         <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-charini-charcoal">
@@ -1184,261 +994,137 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                       value={phoneNumber}
                       onChange={(e) => {
                         handlePhoneChange(e.target.value);
-                        if (errorField === "phone" || errorField === "contact") {
+                        if (errorField === "phone") {
                           setErrorMessage(null);
                           setErrorField(null);
                         }
                       }}
                       placeholder={activeCountry.code === "IN" ? "98765 43210" : "Mobile number"}
-                      className="flex-1 min-w-0 px-2 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
+                      className="flex-1 min-w-0 px-2 py-2 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
                     />
                   </div>
-                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1.5 pl-2">
+                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1 pl-2">
                     Private previews &amp; collection releases directly on WhatsApp.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  <input
+                    ref={emailInputRef}
+                    id="signup-email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errorField === "email") {
+                        setErrorMessage(null);
+                        setErrorField(null);
+                      }
+                    }}
+                    placeholder="Enter your email address"
+                    className={`w-full min-h-[46px] px-5 py-2.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border ${
+                      errorField === "email"
+                        ? "border-charini-error focus:border-charini-error"
+                        : "border-charini-border focus:border-charini-charcoal"
+                    } transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]`}
+                  />
+                  <p className="font-sans text-[10px] text-charini-charcoal-muted mt-1 pl-2">
+                    Lookbooks, invitations &amp; collection releases sent to your inbox.
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Step 1: Store Selection */}
+            {/* 3. Brand Selection */}
             <div ref={storeSectionRef} className="w-full flex flex-col">
               <div className="flex items-baseline justify-between mb-1.5">
-                <span className="font-sans text-[11px] font-medium tracking-[0.14em] uppercase text-charini-charcoal">
-                  1. Select Store
+                <span className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal">
+                  Select Brand
                 </span>
-                <span className="font-sans text-[11px] text-charini-charcoal-dim">
+                <span className="font-sans text-[10px] text-charini-charcoal-dim">
                   Select one or both
                 </span>
               </div>
-              <p className="font-sans text-[11px] text-charini-charcoal-muted mb-2.5">
-                Choose which store you would like to hear from:
-              </p>
 
-              <fieldset
-                aria-describedby={
-                  errorMessage && errorField === "stores" ? "form-error" : undefined
-                }
-                className="border-none p-0 m-0"
-              >
-                <legend className="sr-only">Select Store</legend>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {availableStoreTags.map((tag) => {
-                    const isSelected = selectedInterests.includes(tag.slug);
-                    const isCharini = tag.slug === "charini";
-                    const logoSrc = isCharini ? "/charinilogo.png" : "/charinistorieslogo.png";
-                    const subtitle = isCharini
-                      ? "Silky Drapes & Signature Silks"
-                      : "100% Cotton & Story-Based Prints";
+              <div className="grid grid-cols-1 gap-2">
+                {availableStoreTags.map((tag) => {
+                  const isSelected = selectedInterests.includes(tag.slug);
+                  const isCharini = tag.slug === "charini";
+                  const logoSrc = isCharini ? "/charinilogo.png" : "/charinistorieslogo.png";
+                  const subtitle = isCharini
+                    ? "Contemporary Couture & Signature Silhouettes"
+                    : "Ready-to-Wear with a Story";
 
-                    return (
-                      <label
-                        key={tag.slug}
-                        className={`flex items-center gap-3 px-4 py-2.5 min-h-[52px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
-                          isSelected
-                            ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-sm"
-                            : errorField === "stores"
-                            ? "bg-white text-charini-charcoal border-charini-error/60 hover:bg-[#FAF9F7]"
-                            : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
+                  return (
+                    <label
+                      key={tag.slug}
+                      className={`flex items-center gap-3 px-4 py-2.5 min-h-[50px] rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.99] ${
+                        isSelected
+                          ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-sm"
+                          : errorField === "stores"
+                          ? "bg-white text-charini-charcoal border-charini-error/60 hover:bg-[#FAF9F7]"
+                          : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={isSelected}
+                        onChange={() => toggleInterest(tag.slug)}
+                        aria-label={tag.label}
+                      />
+
+                      {/* Store Logo Circle */}
+                      <div
+                        className={`w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs border ${
+                          isCharini
+                            ? "bg-white border-charini-border/70 p-0.5"
+                            : "bg-[#0D352B] border-[#0D352B]"
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={isSelected}
-                          onChange={() => toggleInterest(tag.slug)}
-                          aria-label={tag.label}
+                        <Image
+                          src={logoSrc}
+                          alt={tag.label}
+                          width={28}
+                          height={28}
+                          className={`w-full h-full ${isCharini ? "object-contain" : "object-cover"}`}
                         />
+                      </div>
 
-                        {/* Store Logo Circle */}
-                        <div
-                          className={`w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-xs border ${
-                            isCharini
-                              ? "bg-white border-charini-border/70 p-0.5"
-                              : "bg-[#0D352B] border-[#0D352B]"
+                      {/* Store Label & Subtitle */}
+                      <div className="flex flex-col text-left flex-1 min-w-0">
+                        <span className="font-sans text-xs font-semibold tracking-wider uppercase truncate">
+                          {tag.label}
+                        </span>
+                        <span
+                          className={`font-sans text-[10px] truncate ${
+                            isSelected ? "text-white/70" : "text-charini-charcoal-muted"
                           }`}
                         >
-                          <Image
-                            src={logoSrc}
-                            alt={tag.label}
-                            width={28}
-                            height={28}
-                            className={`w-full h-full ${isCharini ? "object-contain" : "object-cover"}`}
-                          />
-                        </div>
+                          {subtitle}
+                        </span>
+                      </div>
 
-                        {/* Store Label & Subtitle */}
-                        <div className="flex flex-col text-left flex-1 min-w-0">
-                          <span className="font-sans text-xs font-semibold tracking-wider uppercase truncate">
-                            {tag.label}
-                          </span>
-                          <span
-                            className={`font-sans text-[10px] truncate ${
-                              isSelected ? "text-white/70" : "text-charini-charcoal-muted"
-                            }`}
-                          >
-                            {subtitle}
-                          </span>
-                        </div>
-
-                        {/* Visual non-color indicator */}
-                        {isSelected && (
-                          <span
-                            aria-hidden="true"
-                            className="w-2 h-2 rounded-full bg-white shrink-0 inline-block"
-                          />
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            </div>
-
-            {/* Step 2: Update Preferences (unlocked after store selection) */}
-            <div className="w-full flex flex-col">
-              <div className="flex items-baseline justify-between mb-1.5">
-                <span className="font-sans text-[11px] font-medium tracking-[0.14em] uppercase text-charini-charcoal">
-                  2. Choose Your Updates
-                </span>
-                {!hasStoreSelected && (
-                  <span className="font-sans text-[10px] sm:text-[11px] text-charini-charcoal-dim uppercase tracking-wider">
-                    Select store first
-                  </span>
-                )}
-              </div>
-              <p className="font-sans text-[11px] text-charini-charcoal-muted mb-2.5">
-                {hasStoreSelected
-                  ? "Select the updates you would like to receive (optional):"
-                  : "Please select a store above to unlock update options."}
-              </p>
-
-              <fieldset
-                aria-disabled={!hasStoreSelected}
-                className={`border-none p-0 m-0 transition-all duration-200 ${
-                  !hasStoreSelected
-                    ? "opacity-35 pointer-events-none select-none grayscale-[30%]"
-                    : "opacity-100"
-                }`}
-              >
-                <legend className="sr-only">Choose Your Updates</legend>
-                <div className="flex flex-wrap gap-2">
-                  {updateTags.map((tag) => {
-                    const isSelected = selectedInterests.includes(tag.slug);
-                    return (
-                      <label
-                        key={tag.slug}
-                        onClick={(e) => {
-                          if (!hasStoreSelected) {
-                            e.preventDefault();
-                            handleUpdateTagClick(tag.slug);
-                          }
-                        }}
-                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] text-xs sm:text-[13px] tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
-                          isSelected
-                            ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-sm"
-                            : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          tabIndex={!hasStoreSelected ? -1 : 0}
-                          disabled={!hasStoreSelected}
-                          className="sr-only"
-                          checked={isSelected}
-                          onChange={() => handleUpdateTagClick(tag.slug)}
-                          aria-label={tag.label}
+                      {/* Visual indicator */}
+                      {isSelected && (
+                        <span
+                          aria-hidden="true"
+                          className="w-2 h-2 rounded-full bg-white shrink-0 inline-block"
                         />
-                        {/* Visual non-color indicator */}
-                        {isSelected && (
-                          <span
-                            aria-hidden="true"
-                            className="w-1.5 h-1.5 rounded-full bg-white inline-block"
-                          />
-                        )}
-                        <span>{tag.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              {/* Conditional Specific Cuts Area */}
-              <div
-                className="conditional-field mt-3 flex flex-col gap-3"
-                hidden={!isSpecificCutsSelected || !hasStoreSelected}
-                aria-hidden={!isSpecificCutsSelected || !hasStoreSelected}
-              >
-                {/* When STORIES (or both stores) + Specific Cuts are selected, show cut type tags */}
-                {showCutTypeTags && (
-                  <div className="flex flex-col gap-2 pt-1 pb-1 animate-fade-in bg-[#FAF9F7] p-3 border border-charini-border/70 rounded-2xl">
-                    <div className="flex items-baseline justify-between">
-                      <span className="font-sans text-[10px] font-semibold tracking-[0.14em] uppercase text-charini-charcoal">
-                        Cut Types:
-                      </span>
-                      <span className="font-sans text-[10px] text-charini-charcoal-dim">
-                        STORIES Cuts
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {availableCutTypeTags.map((tag) => {
-                        const isSelected = selectedInterests.includes(tag.slug);
-                        return (
-                          <label
-                            key={tag.slug}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] text-xs tracking-wide rounded-full border cursor-pointer select-none transition-all duration-150 active:scale-[0.98] ${
-                              isSelected
-                                ? "bg-charini-charcoal text-white border-charini-charcoal font-medium shadow-xs"
-                                : "bg-white text-charini-charcoal border-charini-border hover:border-charini-charcoal-muted/70 hover:bg-[#FAF9F7]"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              className="sr-only"
-                              checked={isSelected}
-                              onChange={() => toggleInterest(tag.slug)}
-                              aria-label={tag.label}
-                            />
-                            {isSelected && (
-                              <span
-                                aria-hidden="true"
-                                className="w-1.5 h-1.5 rounded-full bg-white inline-block"
-                              />
-                            )}
-                            <span>{tag.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Cut Notes input */}
-                <div>
-                  <label htmlFor="specific-cuts-note" className="sr-only">
-                    Specific cuts preferences
-                  </label>
-                  <input
-                    ref={specificCutsInputRef}
-                    id="specific-cuts-note"
-                    type="text"
-                    maxLength={500}
-                    value={specificCutsNote}
-                    onChange={(e) => setSpecificCutsNote(e.target.value)}
-                    placeholder={
-                      showCutTypeTags
-                        ? "Any other specific cuts or requests (optional)"
-                        : "Tell us which cuts you're interested in"
-                    }
-                    className="w-full min-h-[44px] px-4 py-2 bg-charini-surface text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full"
-                  />
-                </div>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Marketing Consent Checkbox */}
+            {/* 4. Marketing Consent Checkbox */}
             <label
               htmlFor="marketing-consent"
-              className="w-full flex items-start gap-3 pt-1 cursor-pointer select-none group"
+              className="w-full flex items-start gap-2.5 pt-1 cursor-pointer select-none group"
             >
               <div className="relative flex items-center justify-center shrink-0 mt-0.5">
                 <input
@@ -1461,7 +1147,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                       ? "bg-charini-charcoal border-charini-charcoal text-white"
                       : errorField === "consent"
                       ? "bg-white border-charini-error"
-                      : "bg-white border-charini-border group-hover:border-charini-charcoal-muted/70 peer-focus-visible:ring-2 peer-focus-visible:ring-charini-charcoal peer-focus-visible:ring-offset-1"
+                      : "bg-white border-charini-border group-hover:border-charini-charcoal-muted/70 peer-focus-visible:ring-2 peer-focus-visible:ring-charini-charcoal"
                   }`}
                 >
                   {consent && (
@@ -1478,9 +1164,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                   )}
                 </div>
               </div>
-              <span className="font-sans text-[11px] sm:text-xs text-charini-charcoal-muted leading-relaxed">
-                I agree to receive marketing communications from CHARINI about the updates I have
-                selected.
+              <span className="font-sans text-[11px] text-charini-charcoal-muted leading-relaxed">
+                I agree to receive communications from CHARINI.
               </span>
             </label>
 
@@ -1490,18 +1175,18 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                 id="form-error"
                 role="alert"
                 aria-live="polite"
-                className="w-full py-2.5 px-3.5 bg-charini-error-bg border border-charini-error/30 text-charini-error text-xs text-center rounded-xl"
+                className="w-full py-2.5 px-3.5 bg-charini-error-bg border border-charini-error/30 text-charini-error text-xs text-center rounded-xl animate-fade-in"
               >
                 {errorMessage}
               </div>
             )}
 
-            {/* Submit Button (Long button, greyed out until checkbox is agreed to) */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={!consent || isSubmitting}
               aria-disabled={!consent || isSubmitting}
-              className={`w-full min-h-[52px] py-4 px-6 font-sans text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 flex items-center justify-center gap-2 mt-2 rounded-full ${
+              className={`w-full min-h-[50px] py-3.5 px-6 font-sans text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 flex items-center justify-center gap-2 rounded-full ${
                 !consent || isSubmitting
                   ? "bg-[#E6E2DC] text-[#9C958D] border border-[#DDD8D0] cursor-not-allowed shadow-none"
                   : "bg-charini-charcoal hover:bg-charini-charcoal-deep text-white border border-charini-charcoal cursor-pointer shadow-[0_2px_8px_rgba(26,25,24,0.12)] active:scale-[0.99]"
@@ -1513,17 +1198,26 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                     aria-hidden="true"
                     className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"
                   />
-                  <span>Subscribing...</span>
+                  <span>Joining...</span>
                 </>
               ) : (
-                <span>Subscribe</span>
+                <span>Join the CHARINI Circle</span>
               )}
             </button>
+
+            {/* Retail & Wholesale Enquiries Link */}
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => setIsRetailModalOpen(true)}
+                className="font-sans text-[11px] text-charini-charcoal-muted hover:text-charini-charcoal transition-colors underline underline-offset-4 decoration-charini-border hover:decoration-charini-charcoal cursor-pointer"
+              >
+                Retail &amp; Wholesale Enquiries &rarr;
+              </button>
+            </div>
           </form>
         </main>
       )}
-
-
 
       {/* Instagram Selection Modal */}
       <InstagramModal
@@ -1535,6 +1229,13 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
       <ContactModal
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
+      />
+
+      {/* Retail Inquiry Modal */}
+      <RetailInquiryModal
+        isOpen={isRetailModalOpen}
+        onClose={() => setIsRetailModalOpen(false)}
+        campaignSource={campaignName}
       />
     </div>
   );

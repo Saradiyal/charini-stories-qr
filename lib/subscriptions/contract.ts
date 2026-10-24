@@ -9,17 +9,21 @@ export interface InterestTag {
 }
 
 export interface SubscribeRequestBody {
+  firstName?: string | null;
   email?: string | null;
   phoneCountryCode?: string | null;
   phoneNumber?: string | null;
   interests: string[];
   specificCutsNote?: string | null;
   marketingConsent: boolean;
+  source?: string | null;
+  preferredContactMethod?: "whatsapp" | "email" | null;
   /** Milliseconds between form render and submit (light bot heuristic). */
   elapsedMs?: number;
 }
 
 export type SubscribeErrorCode =
+  | "first_name_required"
   | "contact_required"
   | "email_required"
   | "invalid_email"
@@ -37,6 +41,7 @@ export type SubscribeErrorCode =
   | "server_error";
 
 export type SubscribeField =
+  | "firstName"
   | "contact"
   | "email"
   | "phone"
@@ -51,14 +56,15 @@ export type SubscribeResponse =
 
 /** Visitor-facing copy for every outcome. Never includes internal details. */
 export const ERROR_MESSAGES: Record<SubscribeErrorCode | "network", string> = {
+  first_name_required: "Please enter your name.",
   contact_required: "Please provide an email or mobile number.",
   email_required: "Please enter your email address.",
   invalid_email: "Please enter a valid email address.",
   phone_required: "Please enter your mobile number.",
   invalid_phone: "Please enter a valid mobile number.",
-  store_required: "Please select at least one store (CHARINI or CHARINI STORIES).",
+  store_required: "Please select at least one brand (CHARINI or CHARINI STORIES).",
   consent_required: "Please confirm your consent to receive updates.",
-  interests_required: "Please choose at least one update.",
+  interests_required: "Please choose at least one brand.",
   invalid_interests: "Please choose from the options shown.",
   note_too_long: "Please keep this under 500 characters.",
   already_subscribed: "You are already subscribed. We\u2019ve updated your preferences.",

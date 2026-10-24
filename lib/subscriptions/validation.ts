@@ -7,6 +7,12 @@ const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export const subscribeSchema = z.object({
+  firstName: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
   email: z
     .string()
     .trim()
@@ -46,16 +52,29 @@ export const subscribeSchema = z.object({
     .nullish()
     .transform((v) => (v ?? "").trim()),
   marketingConsent: z.literal(true, { error: "consent_required" }),
+  source: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : "Mumbai Pop-up")),
+  preferredContactMethod: z
+    .enum(["whatsapp", "email"])
+    .nullish()
+    .transform((v) => v || "whatsapp"),
   elapsedMs: z.number().finite().nonnegative().optional(),
 });
 
 export type ValidSubscription = {
+  firstName: string | null;
   email: string | null;
   phoneCountryCode: string | null;
   phoneNumber: string | null;
   interests: string[];
   specificCutsNote: string | null;
   marketingConsent: true;
+  source: string;
+  preferredContactMethod: string;
 };
 
 export type ValidationOutcome =
@@ -63,6 +82,7 @@ export type ValidationOutcome =
   | { ok: false; code: SubscribeErrorCode; field?: SubscribeField };
 
 const FIELD_BY_PATH: Record<string, SubscribeField> = {
+  firstName: "firstName",
   email: "email",
   phone: "phone",
   phoneNumber: "phone",
@@ -74,6 +94,7 @@ const FIELD_BY_PATH: Record<string, SubscribeField> = {
 };
 
 const KNOWN_CODES = new Set<SubscribeErrorCode>([
+  "first_name_required",
   "contact_required",
   "email_required",
   "invalid_email",
@@ -97,8 +118,18 @@ export function validateSubscription(input: unknown): ValidationOutcome {
     return { ok: false, code, field };
   }
 
-  const { email, phoneCountryCode, phoneNumber, interests, specificCutsNote, marketingConsent, elapsedMs } =
-    parsed.data;
+  const {
+    firstName,
+    email,
+    phoneCountryCode,
+    phoneNumber,
+    interests,
+    specificCutsNote,
+    marketingConsent,
+    source,
+    preferredContactMethod,
+    elapsedMs,
+  } = parsed.data;
 
   // At least one contact channel (email or phone) is required
   if (!email && !phoneNumber) {
@@ -122,7 +153,7 @@ export function validateSubscription(input: unknown): ValidationOutcome {
     }
   }
 
-  // At least one store (CHARINI or CHARINI STORIES) must be selected.
+  // At least one brand (CHARINI or CHARINI STORIES) must be selected.
   const hasStore = interests.some((slug) => (STORE_SLUGS as readonly string[]).includes(slug));
   if (!hasStore) {
     return { ok: false, code: "store_required", field: "stores" };
@@ -137,12 +168,15 @@ export function validateSubscription(input: unknown): ValidationOutcome {
   return {
     ok: true,
     data: {
+      firstName: firstName || null,
       email: email || null,
       phoneCountryCode: cleanPhone ? cleanCode : null,
       phoneNumber: cleanPhone || null,
       interests,
       specificCutsNote: note,
       marketingConsent,
+      source: source || "Mumbai Pop-up",
+      preferredContactMethod: preferredContactMethod || "whatsapp",
     },
     tooFast: typeof elapsedMs === "number" && elapsedMs < LIMITS.minFillMs,
   };

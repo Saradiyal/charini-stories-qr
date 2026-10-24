@@ -47,6 +47,9 @@ export async function subscribe(
     p_marketing_consent: data.marketingConsent,
     p_consent_version: CONSENT_VERSION,
     p_rate_key: rateKey,
+    p_first_name: data.firstName,
+    p_source: data.source,
+    p_preferred_contact_method: data.preferredContactMethod,
   });
 
   if (error) {
