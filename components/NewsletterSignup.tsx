@@ -1144,14 +1144,6 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                       <span className="font-sans text-[11px] sm:text-xs font-semibold tracking-wider uppercase truncate">
                         {tag.label}
                       </span>
-
-                      {/* Visual indicator dot */}
-                      {isSelected && (
-                        <span
-                          aria-hidden="true"
-                          className="w-1.5 h-1.5 rounded-full bg-white shrink-0 inline-block ml-0.5"
-                        />
-                      )}
                     </label>
                   );
                 })}
