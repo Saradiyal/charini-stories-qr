@@ -470,6 +470,16 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const [countrySearch, setCountrySearch] = useState("");
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Alternate contact method for Thank You page
+  const [altEmail, setAltEmail] = useState("");
+  const [altPhone, setAltPhone] = useState("");
+  const [altCountryCode, setAltCountryCode] = useState("IN");
+  const activeAltCountry = useMemo(
+    () => ALL_COUNTRIES.find((c) => c.code === altCountryCode) || TOP_COUNTRIES[0],
+    [altCountryCode]
+  );
+
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
 
@@ -747,7 +757,23 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const handleOptionalProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanCountry = (country || countrySearch).replace(/^[\p{Extended_Pictographic}\s]+/u, "").trim();
-    if (!lastName.trim() && !cleanCountry && !email.trim() && !phoneNumber.trim()) {
+    const cleanLastName = lastName.trim();
+    const cleanAltEmail = altEmail.trim().toLowerCase();
+    const cleanAltPhone = altPhone.replace(/\D/g, "");
+
+    const finalEmail = contactMethod === "email" ? (email.trim() || null) : (cleanAltEmail || null);
+    const finalPhoneCountryCode =
+      contactMethod === "whatsapp"
+        ? phoneCountryCode
+        : cleanAltPhone
+        ? activeAltCountry.dialCode
+        : null;
+    const finalPhone =
+      contactMethod === "whatsapp"
+        ? phoneNumber.trim() || null
+        : cleanAltPhone || null;
+
+    if (!cleanLastName && !cleanCountry && !cleanAltEmail && !cleanAltPhone) {
       setIsProfileSaved(true);
       return;
     }
@@ -760,11 +786,11 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         body: JSON.stringify({
           subscriberId,
           firstName: firstName.trim() || null,
-          lastName: lastName.trim() || null,
+          lastName: cleanLastName || null,
           country: cleanCountry || null,
-          email: email.trim() || null,
-          phoneCountryCode: phoneNumber.trim() ? phoneCountryCode : null,
-          phoneNumber: phoneNumber.trim() || null,
+          email: finalEmail,
+          phoneCountryCode: finalPhoneCountryCode,
+          phoneNumber: finalPhone,
         }),
       });
 
@@ -966,12 +992,126 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                     )}
                   </div>
 
+                  {/* Alternate Contact Channel: Ask for Email if WhatsApp used, or WhatsApp if Email used */}
+                  {contactMethod === "whatsapp" ? (
+                    <div className="flex flex-col">
+                      <div className="flex items-baseline justify-between mb-2">
+                        <label
+                          htmlFor="optional-alt-email"
+                          className="font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal"
+                        >
+                          Email Address
+                        </label>
+                        <span className="font-sans text-[10px] text-charini-charcoal-dim">Optional</span>
+                      </div>
+                      <input
+                        id="optional-alt-email"
+                        type="email"
+                        autoComplete="email"
+                        value={altEmail}
+                        onChange={(e) => setAltEmail(e.target.value)}
+                        placeholder="Enter your email address"
+                        className="w-full min-h-[50px] px-5 py-3.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                      />
+                      <p className="font-sans text-[11px] text-charini-charcoal-muted mt-1.5 pl-3">
+                        For lookbooks, digital invitations &amp; private releases.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col">
+                      <div className="flex items-baseline justify-between mb-2">
+                        <label
+                          htmlFor="optional-alt-phone"
+                          className="font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal"
+                        >
+                          WhatsApp Number
+                        </label>
+                        <span className="font-sans text-[10px] text-charini-charcoal-dim">Optional</span>
+                      </div>
+
+                      <div className="w-full flex items-center bg-white border border-charini-border focus-within:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)] px-2.5">
+                        {/* Compact Country Code Selector */}
+                        <div className="relative flex items-center shrink-0 pl-2 pr-1.5 py-1 cursor-pointer">
+                          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-charini-charcoal font-medium select-none pointer-events-none">
+                            <span className="text-base leading-none">{activeAltCountry.flag}</span>
+                            <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-charini-charcoal">
+                              {activeAltCountry.short}
+                            </span>
+                            <span className="text-xs sm:text-sm text-charini-charcoal-dim">
+                              {activeAltCountry.dialCode}
+                            </span>
+                            <svg
+                              className="w-3 h-3 text-charini-charcoal-dim ml-0.5"
+                              viewBox="0 0 10 6"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M1 1L5 5L9 1" />
+                            </svg>
+                          </div>
+                          <select
+                            id="thankyou-country-code"
+                            aria-label="Country dial code"
+                            value={altCountryCode}
+                            onChange={(e) => setAltCountryCode(e.target.value)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          >
+                            <optgroup label="Popular">
+                              {TOP_COUNTRIES.map((c) => (
+                                <option key={`top-ty-${c.code}`} value={c.code}>
+                                  {c.flag} {c.name} ({c.short} {c.dialCode})
+                                </option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="All Countries">
+                              {ALL_COUNTRIES.map((c) => (
+                                <option key={`all-ty-${c.code}`} value={c.code}>
+                                  {c.flag} {c.name} ({c.short} {c.dialCode})
+                                </option>
+                              ))}
+                            </optgroup>
+                          </select>
+                        </div>
+
+                        <div className="w-[1px] h-5 bg-charini-border shrink-0 mx-1" />
+
+                        {/* Phone Number Input */}
+                        <input
+                          id="optional-alt-phone"
+                          type="tel"
+                          inputMode="tel"
+                          value={altPhone}
+                          onChange={(e) => setAltPhone(e.target.value.replace(/[^\d\s-]/g, ""))}
+                          placeholder={activeAltCountry.code === "IN" ? "98765 43210" : "Mobile number"}
+                          className="flex-1 min-w-0 px-2.5 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
+                        />
+                      </div>
+                      <p className="font-sans text-[11px] text-charini-charcoal-muted mt-1.5 pl-3">
+                        For private previews and instant updates via WhatsApp.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Save Details Button */}
                   <button
                     type="submit"
-                    disabled={isSubmittingProfile || (!lastName.trim() && !country.trim() && !countrySearch.trim())}
+                    disabled={
+                      isSubmittingProfile ||
+                      (!lastName.trim() &&
+                        !country.trim() &&
+                        !countrySearch.trim() &&
+                        !altEmail.trim() &&
+                        !altPhone.trim())
+                    }
                     className={`w-full min-h-[50px] py-3.5 px-6 font-sans text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 flex items-center justify-center gap-2 rounded-full mt-1 ${
-                      !lastName.trim() && !country.trim() && !countrySearch.trim()
+                      !lastName.trim() &&
+                      !country.trim() &&
+                      !countrySearch.trim() &&
+                      !altEmail.trim() &&
+                      !altPhone.trim()
                         ? "bg-[#E6E2DC] text-[#9C958D] border border-[#DDD8D0] cursor-not-allowed shadow-none"
                         : "bg-charini-charcoal hover:bg-charini-charcoal-deep text-white border border-charini-charcoal cursor-pointer shadow-[0_2px_8px_rgba(26,25,24,0.12)] active:scale-[0.99]"
                     }`}
