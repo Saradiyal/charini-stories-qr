@@ -2,15 +2,15 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CHARINI — Stay in the loop",
+  title: "CHARINI — Enter the World of CHARINI",
   description:
-    "Be the first to hear about new prints, new cuts, collections and special releases from CHARINI.",
+    "Where stories become wearable expressions of art. Join our circle for first access to new collections, private previews and exclusive invitations.",
   keywords: ["CHARINI", "Fashion", "Designer", "Prints", "Cuts", "Collections"],
   authors: [{ name: "CHARINI" }],
   openGraph: {
-    title: "CHARINI — Stay in the loop",
+    title: "CHARINI — Enter the World of CHARINI",
     description:
-      "Be the first to hear about new prints, new cuts, collections and special releases from CHARINI.",
+      "Where stories become wearable expressions of art. Join our circle for first access to new collections, private previews and exclusive invitations.",
     type: "website",
     siteName: "CHARINI",
   },

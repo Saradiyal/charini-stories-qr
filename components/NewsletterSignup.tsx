@@ -782,10 +782,9 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         </section>
       ) : (
         <main className="w-full flex flex-col items-center">
-          {/* Campaign Edition Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-charini-charcoal/5 border border-charini-border text-[10px] sm:text-[11px] font-sans font-medium tracking-widest uppercase text-charini-charcoal mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-charini-charcoal" />
-            <span>{campaignName} Edition</span>
+          {/* Campaign Badge */}
+          <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-charini-charcoal/5 border border-charini-border text-[10px] sm:text-[11px] font-sans font-medium tracking-widest uppercase text-charini-charcoal mb-4">
+            <span>{campaignName}</span>
           </div>
 
           {/* Hero Headings */}
