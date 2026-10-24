@@ -18,6 +18,8 @@ export interface SubscribeRequestBody {
   marketingConsent: boolean;
   source?: string | null;
   preferredContactMethod?: "whatsapp" | "email" | null;
+  /** Honeypot field for bot deterrence. */
+  botTrap?: string;
   /** Milliseconds between form render and submit (light bot heuristic). */
   elapsedMs?: number;
 }

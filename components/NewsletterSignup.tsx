@@ -458,16 +458,17 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   );
   const phoneCountryCode = activeCountry.dialCode;
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(["charini", "charini-stories"]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [specificCutsNote, setSpecificCutsNote] = useState("");
   const [consent, setConsent] = useState(false);
+  const [botTrap, setBotTrap] = useState("");
 
-  // Profile details state (on completion screen if they want to give last name)
+  // Profile details state (on completion screen for personalised invitations)
   const [subscriberId, setSubscriberId] = useState<string | null>(null);
   const [lastName, setLastName] = useState("");
+  const [country, setCountry] = useState("");
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
-  const [showOptionalProfile, setShowOptionalProfile] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -661,6 +662,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         marketingConsent: consent,
         source: campaignName,
         preferredContactMethod: contactMethod,
+        botTrap: botTrap ? botTrap.trim() : undefined,
         elapsedMs,
       };
 
@@ -704,7 +706,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
   const handleOptionalProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!lastName.trim() && !email.trim() && !phoneNumber.trim()) {
+    if (!lastName.trim() && !country.trim() && !email.trim() && !phoneNumber.trim()) {
       setIsProfileSaved(true);
       return;
     }
@@ -718,6 +720,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           subscriberId,
           firstName: firstName.trim() || null,
           lastName: lastName.trim() || null,
+          country: country.trim() || null,
           email: email.trim() || null,
           phoneCountryCode: phoneNumber.trim() ? phoneCountryCode : null,
           phoneNumber: phoneNumber.trim() || null,
@@ -788,47 +791,99 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
               />
             </div>
 
-            {/* Optional profile expansion */}
-            {!isProfileSaved && (
-              <div className="w-full max-w-[360px] mt-2">
-                {!showOptionalProfile ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowOptionalProfile(true)}
-                    className="font-sans text-[11px] text-charini-charcoal-dim hover:text-charini-charcoal underline underline-offset-4 cursor-pointer transition-colors"
-                  >
-                    Add last name for personal invitations (optional) &rarr;
-                  </button>
-                ) : (
-                  <form
-                    onSubmit={handleOptionalProfileSubmit}
-                    className="flex flex-col gap-3 p-4 bg-[#FAF9F7] border border-charini-border rounded-2xl text-left animate-fade-in"
-                  >
-                    <label
-                      htmlFor="optional-last-name"
-                      className="font-sans text-[10px] font-medium tracking-[0.14em] uppercase text-charini-charcoal"
-                    >
-                      Last Name
-                    </label>
+            {/* Invitation Personalisation Card */}
+            <div className="w-full max-w-[360px] mt-4">
+              {isProfileSaved ? (
+                <div className="py-4 px-5 bg-white border border-charini-border rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] text-center animate-fade-in">
+                  <div className="inline-flex items-center gap-1.5 text-xs text-charini-charcoal font-medium">
+                    <svg className="w-4 h-4 text-[#0D352B]" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Your preferences have been saved.</span>
+                  </div>
+                  <p className="font-sans text-[11px] text-charini-charcoal-muted mt-1">
+                    We look forward to welcoming you at our future showcases.
+                  </p>
+                </div>
+              ) : (
+                <form
+                  onSubmit={handleOptionalProfileSubmit}
+                  className="w-full flex flex-col gap-4 text-left"
+                >
+                  <div className="relative flex py-2 items-center mb-1 w-full">
+                    <div className="flex-grow border-t border-charini-border/70" />
+                    <span className="flex-shrink mx-3 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-charini-charcoal-dim">
+                      Personalise Invitations
+                    </span>
+                    <div className="flex-grow border-t border-charini-border/70" />
+                  </div>
+
+                  {/* Last Name Field */}
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline justify-between mb-2">
+                      <label
+                        htmlFor="optional-last-name"
+                        className="font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal"
+                      >
+                        Last Name
+                      </label>
+                      <span className="font-sans text-[10px] text-charini-charcoal-dim">Optional</span>
+                    </div>
                     <input
                       id="optional-last-name"
                       type="text"
+                      maxLength={100}
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Your last name"
-                      className="w-full min-h-[42px] px-3.5 py-2 bg-white text-xs text-charini-charcoal border border-charini-border rounded-full"
+                      placeholder="Enter your last name"
+                      className="w-full min-h-[50px] px-5 py-3.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
                     />
-                    <button
-                      type="submit"
-                      disabled={isSubmittingProfile}
-                      className="w-full py-2.5 rounded-full bg-charini-charcoal text-white text-[11px] font-semibold tracking-wider uppercase hover:bg-charini-charcoal-deep transition-all"
-                    >
-                      {isSubmittingProfile ? "Saving..." : "Save Details"}
-                    </button>
-                  </form>
-                )}
-              </div>
-            )}
+                  </div>
+
+                  {/* Country Field */}
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline justify-between mb-2">
+                      <label
+                        htmlFor="optional-country"
+                        className="font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal"
+                      >
+                        Country of Residence
+                      </label>
+                      <span className="font-sans text-[10px] text-charini-charcoal-dim">Optional</span>
+                    </div>
+                    <input
+                      id="optional-country"
+                      type="text"
+                      maxLength={100}
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="e.g. India, Sri Lanka, United Kingdom"
+                      className="w-full min-h-[50px] px-5 py-3.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                    />
+                  </div>
+
+                  {/* Save Details Button */}
+                  <button
+                    type="submit"
+                    disabled={isSubmittingProfile || (!lastName.trim() && !country.trim())}
+                    className={`w-full min-h-[50px] py-3.5 px-6 font-sans text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 flex items-center justify-center gap-2 rounded-full mt-1 ${
+                      !lastName.trim() && !country.trim()
+                        ? "bg-[#E6E2DC] text-[#9C958D] border border-[#DDD8D0] cursor-not-allowed shadow-none"
+                        : "bg-charini-charcoal hover:bg-charini-charcoal-deep text-white border border-charini-charcoal cursor-pointer shadow-[0_2px_8px_rgba(26,25,24,0.12)] active:scale-[0.99]"
+                    }`}
+                  >
+                    {isSubmittingProfile ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Saving...</span>
+                      </span>
+                    ) : (
+                      "Save Details"
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         </section>
       ) : (
@@ -858,13 +913,26 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           <div className="relative flex py-2 items-center mb-7 w-full">
             <div className="flex-grow border-t border-charini-border/70" />
             <span className="flex-shrink mx-3 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-charini-charcoal-dim">
-              Join the Circle
+              Stay Connected
             </span>
             <div className="flex-grow border-t border-charini-border/70" />
           </div>
 
           {/* Streamlined Form with Generous Luxury Spacing */}
           <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col gap-6 sm:gap-7">
+            {/* Anti-bot Honeypot field (hidden from real visitors) */}
+            <div className="absolute opacity-0 pointer-events-none -z-10 h-0 w-0 overflow-hidden" aria-hidden="true">
+              <label htmlFor="website-hp">Website</label>
+              <input
+                id="website-hp"
+                type="text"
+                name="website_hp"
+                value={botTrap}
+                onChange={(e) => setBotTrap(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
             {/* 1. First Name Field */}
             <div className="flex flex-col">
               <label
@@ -1269,24 +1337,24 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                     className="sr-only peer"
                   />
                   <div
-                    className={`h-4.5 w-4.5 rounded-[5px] border transition-all duration-150 flex items-center justify-center ${
+                    className={`w-5 h-5 rounded-[4px] border-2 transition-all duration-150 flex items-center justify-center ${
                       consent
                         ? "bg-charini-charcoal border-charini-charcoal text-white"
                         : errorField === "consent"
                         ? "bg-white border-charini-error"
-                        : "bg-white border-charini-border group-hover:border-charini-charcoal-muted/70 peer-focus-visible:ring-2 peer-focus-visible:ring-charini-charcoal"
+                        : "bg-white border-charini-charcoal/30 group-hover:border-charini-charcoal peer-focus-visible:ring-2 peer-focus-visible:ring-charini-charcoal"
                     }`}
                   >
                     {consent && (
                       <svg
-                        className="w-2.5 h-2.5 stroke-white"
+                        className="w-3 h-3 stroke-white"
                         viewBox="0 0 12 12"
                         fill="none"
-                        strokeWidth="2"
+                        strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        <polyline points="2.5 6 4.8 8.5 9.5 3.5" />
+                        <polyline points="2 6 4.5 8.5 10 3" />
                       </svg>
                     )}
                   </div>

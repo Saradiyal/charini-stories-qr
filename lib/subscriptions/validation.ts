@@ -62,6 +62,7 @@ export const subscribeSchema = z.object({
     .enum(["whatsapp", "email"])
     .nullish()
     .transform((v) => v || "whatsapp"),
+  botTrap: z.string().max(100).optional(),
   elapsedMs: z.number().finite().nonnegative().optional(),
 });
 
@@ -128,8 +129,19 @@ export function validateSubscription(input: unknown): ValidationOutcome {
     marketingConsent,
     source,
     preferredContactMethod,
+    botTrap,
     elapsedMs,
   } = parsed.data;
+
+  // Anti-bot honeypot check
+  if (botTrap && botTrap.trim().length > 0) {
+    return { ok: false, code: "invalid_request" };
+  }
+
+  // First name is required
+  if (!firstName || firstName.trim().length === 0) {
+    return { ok: false, code: "first_name_required", field: "firstName" };
+  }
 
   // At least one contact channel (email or phone) is required
   if (!email && !phoneNumber) {
