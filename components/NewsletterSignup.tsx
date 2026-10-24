@@ -467,6 +467,9 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const [subscriberId, setSubscriberId] = useState<string | null>(null);
   const [lastName, setLastName] = useState("");
   const [country, setCountry] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
 
@@ -485,6 +488,43 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const emailInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const storeSectionRef = useRef<HTMLDivElement>(null);
+
+  // Unique country list for search & autocomplete
+  const uniqueCountries = useMemo(() => {
+    const seen = new Set<string>();
+    return ALL_COUNTRIES.filter((c) => {
+      if (seen.has(c.name)) return false;
+      seen.add(c.name);
+      return true;
+    });
+  }, []);
+
+  const filteredCountries = useMemo(() => {
+    const q = countrySearch.trim().toLowerCase();
+    if (!q) return uniqueCountries;
+    return uniqueCountries.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.code.toLowerCase().includes(q) ||
+        c.short.toLowerCase().includes(q)
+    );
+  }, [countrySearch, uniqueCountries]);
+
+  // Click-outside listener for country dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCountryDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     renderTimeRef.current = Date.now();
@@ -706,7 +746,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
   const handleOptionalProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!lastName.trim() && !country.trim() && !email.trim() && !phoneNumber.trim()) {
+    const cleanCountry = (country || countrySearch).replace(/^[\p{Extended_Pictographic}\s]+/u, "").trim();
+    if (!lastName.trim() && !cleanCountry && !email.trim() && !phoneNumber.trim()) {
       setIsProfileSaved(true);
       return;
     }
@@ -720,7 +761,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
           subscriberId,
           firstName: firstName.trim() || null,
           lastName: lastName.trim() || null,
-          country: country.trim() || null,
+          country: cleanCountry || null,
           email: email.trim() || null,
           phoneCountryCode: phoneNumber.trim() ? phoneCountryCode : null,
           phoneNumber: phoneNumber.trim() || null,
@@ -840,8 +881,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                     />
                   </div>
 
-                  {/* Country Field */}
-                  <div className="flex flex-col">
+                  {/* Country Field with Searchable Autocomplete Dropdown */}
+                  <div ref={countryDropdownRef} className="relative flex flex-col">
                     <div className="flex items-baseline justify-between mb-2">
                       <label
                         htmlFor="optional-country"
@@ -851,23 +892,86 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                       </label>
                       <span className="font-sans text-[10px] text-charini-charcoal-dim">Optional</span>
                     </div>
-                    <input
-                      id="optional-country"
-                      type="text"
-                      maxLength={100}
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      placeholder="e.g. India, Sri Lanka, United Kingdom"
-                      className="w-full min-h-[50px] px-5 py-3.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
-                    />
+
+                    <div className="relative w-full">
+                      <input
+                        id="optional-country"
+                        type="text"
+                        autoComplete="off"
+                        value={countrySearch}
+                        onFocus={() => setIsCountryDropdownOpen(true)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCountrySearch(val);
+                          setCountry(val);
+                          setIsCountryDropdownOpen(true);
+                        }}
+                        placeholder="Select or type country name..."
+                        className="w-full min-h-[50px] pl-5 pr-11 py-3.5 bg-white text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                      />
+
+                      {/* Dropdown toggle chevron */}
+                      <button
+                        type="button"
+                        aria-label="Toggle country list"
+                        onClick={() => setIsCountryDropdownOpen((prev) => !prev)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-charini-charcoal-dim hover:text-charini-charcoal transition-colors cursor-pointer"
+                      >
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-200 ${
+                            isCountryDropdownOpen ? "rotate-180" : ""
+                          }`}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Autocomplete Dropdown List */}
+                    {isCountryDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-2 max-h-[220px] overflow-y-auto bg-white border border-charini-border rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.08)] z-50 py-1.5 animate-fade-in divide-y divide-charini-border/40">
+                        {filteredCountries.length > 0 ? (
+                          filteredCountries.map((c) => (
+                            <button
+                              key={`country-opt-${c.code}-${c.name}`}
+                              type="button"
+                              onClick={() => {
+                                setCountry(c.name);
+                                setCountrySearch(`${c.flag}  ${c.name}`);
+                                setIsCountryDropdownOpen(false);
+                              }}
+                              className="w-full px-4 py-2.5 text-left flex items-center justify-between text-xs text-charini-charcoal hover:bg-[#FAF9F7] transition-colors cursor-pointer group"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="text-base leading-none shrink-0">{c.flag}</span>
+                                <span className="font-sans font-medium text-xs truncate text-charini-charcoal">{c.name}</span>
+                              </div>
+                              <span className="text-[10px] font-mono text-charini-charcoal-dim group-hover:text-charini-charcoal shrink-0 ml-2">
+                                {c.code}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-4 py-3 text-center text-xs text-charini-charcoal-dim">
+                            No matching country found
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Save Details Button */}
                   <button
                     type="submit"
-                    disabled={isSubmittingProfile || (!lastName.trim() && !country.trim())}
+                    disabled={isSubmittingProfile || (!lastName.trim() && !country.trim() && !countrySearch.trim())}
                     className={`w-full min-h-[50px] py-3.5 px-6 font-sans text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 flex items-center justify-center gap-2 rounded-full mt-1 ${
-                      !lastName.trim() && !country.trim()
+                      !lastName.trim() && !country.trim() && !countrySearch.trim()
                         ? "bg-[#E6E2DC] text-[#9C958D] border border-[#DDD8D0] cursor-not-allowed shadow-none"
                         : "bg-charini-charcoal hover:bg-charini-charcoal-deep text-white border border-charini-charcoal cursor-pointer shadow-[0_2px_8px_rgba(26,25,24,0.12)] active:scale-[0.99]"
                     }`}
