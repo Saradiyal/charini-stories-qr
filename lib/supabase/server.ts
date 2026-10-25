@@ -17,7 +17,7 @@ const clientOptions = {
 } as const;
 
 function readUrl(): string | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   return url && url.startsWith("https://") ? url : null;
 }
 
