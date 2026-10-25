@@ -24,6 +24,38 @@ const INVALID_REASONS = new Set<SubscribeErrorCode>([
 ]);
 
 /**
+ * Resolves raw campaign string against canonical campaigns table in database.
+ * Falls back to formatted input or "Mumbai Pop-up".
+ */
+async function resolveCanonicalCampaign(
+  source: string,
+  supabase: NonNullable<ReturnType<typeof getSecretServerClient>>
+): Promise<string> {
+  const trimmed = source.trim();
+  if (!trimmed) return "Mumbai Pop-up";
+
+  try {
+    const { data: campaigns } = await (supabase.from("campaigns" as any) as any)
+      .select("name, slug");
+
+    if (campaigns && campaigns.length > 0) {
+      const cleanSrc = trimmed.toLowerCase().replace(/[^a-z0-9]/g, "");
+      for (const camp of campaigns as Array<{ name: string; slug: string }>) {
+        const cleanName = camp.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const cleanSlug = camp.slug.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (cleanSrc === cleanName || cleanSrc === cleanSlug) {
+          return camp.name;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[service.ts] Campaign lookup error:", err);
+  }
+
+  return trimmed;
+}
+
+/**
  * Persists a validated subscription through the atomic, service-role-only
  * database function. This is the public site's ONLY database write, and the
  * public site performs no reads of subscriber data at all.
@@ -38,6 +70,8 @@ export async function subscribe(
     return { ok: false, code: "unavailable" };
   }
 
+  const resolvedSource = await resolveCanonicalCampaign(data.source, supabase);
+
   const { data: result, error } = await supabase.rpc("subscribe_newsletter", {
     p_email: data.email,
     p_phone_country_code: data.phoneCountryCode,
@@ -48,7 +82,7 @@ export async function subscribe(
     p_consent_version: CONSENT_VERSION,
     p_rate_key: rateKey,
     p_first_name: data.firstName,
-    p_source: data.source,
+    p_source: resolvedSource,
     p_preferred_contact_method: data.preferredContactMethod,
   });
 
@@ -59,6 +93,19 @@ export async function subscribe(
   }
 
   const outcome = result as RpcResult;
+
+  // Ensure the subscriber record reflects the resolved source, even for existing/resubscribing users
+  if (outcome?.id && resolvedSource) {
+    try {
+      await supabase
+        .from("subscribers")
+        .update({ source: resolvedSource, updated_at: new Date().toISOString() })
+        .eq("id", outcome.id);
+    } catch (updateErr) {
+      console.error("[subscribe] Could not update subscriber source:", updateErr);
+    }
+  }
+
   switch (outcome?.status) {
     case "subscribed":
     case "resubscribed":

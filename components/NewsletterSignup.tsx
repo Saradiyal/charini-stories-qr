@@ -433,18 +433,49 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
   );
 }
 
+const KNOWN_CAMPAIGN_MAP: Record<string, string> = {
+  mumbai: "Mumbai Pop-up",
+  "mumbai-popup": "Mumbai Pop-up",
+  "mumbai-pop-up": "Mumbai Pop-up",
+  colombo: "Colombo Pop-up",
+  "colombo-popup": "Colombo Pop-up",
+  "colombo-pop-up": "Colombo Pop-up",
+  ogf: "One Galle Face - Charini Stories",
+  "one-galle-face": "One Galle Face - Charini Stories",
+  "one-galle-face-charini-stories": "One Galle Face - Charini Stories",
+};
+
 function formatCampaignName(param: string | null): string {
   if (!param) return "Mumbai Pop-up";
-  const cleaned = decodeURIComponent(param).replace(/-/g, " ").trim();
-  if (!cleaned) return "Mumbai Pop-up";
-  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+  const trimmed = decodeURIComponent(param).trim();
+  if (!trimmed) return "Mumbai Pop-up";
+
+  // Check known aliases
+  const normalizedKey = trimmed.toLowerCase().replace(/[\s_]+/g, "-");
+  if (KNOWN_CAMPAIGN_MAP[normalizedKey]) {
+    return KNOWN_CAMPAIGN_MAP[normalizedKey];
+  }
+
+  // Handle generic "popup" or "pop-up" with proper casing
+  let formatted = trimmed
+    .replace(/[-_]+/g, " ")
+    .replace(/\bpop\s*up\b/gi, "Pop-up")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  formatted = formatted.replace(/\bPopup\b/g, "Pop-up");
+  return formatted;
 }
 
 export default function NewsletterSignup({ initialTags }: NewsletterSignupProps) {
   const searchParams = useSearchParams();
 
-  // Detect campaign name from query string (?campaign= or ?source=), default to "Mumbai Pop-up"
-  const rawCampaign = searchParams.get("campaign") || searchParams.get("source");
+  // Detect campaign name from query string (?campaign=, ?c=, ?source=, ?utm_campaign=, ?camp=), default to "Mumbai Pop-up"
+  const rawCampaign =
+    searchParams.get("campaign") ||
+    searchParams.get("c") ||
+    searchParams.get("source") ||
+    searchParams.get("utm_campaign") ||
+    searchParams.get("camp");
   const campaignName = useMemo(() => formatCampaignName(rawCampaign), [rawCampaign]);
 
   // Form states
