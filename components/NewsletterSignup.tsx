@@ -15,7 +15,14 @@ import {
   CUT_TYPE_SLUGS,
   CUT_TYPE_OPTIONS,
 } from "@/lib/config";
-import { TOP_COUNTRIES, ALL_COUNTRIES, SORTED_ALL_COUNTRIES } from "@/lib/countries";
+import {
+  TOP_COUNTRIES,
+  ALL_COUNTRIES,
+  SORTED_ALL_COUNTRIES,
+  cleanPhoneNumber,
+  getCountryPhoneRules,
+  validatePhoneNumber,
+} from "@/lib/countries";
 import RetailInquiryModal from "./RetailInquiryModal";
 
 interface NewsletterSignupProps {
@@ -478,11 +485,39 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     searchParams.get("camp");
   const campaignName = useMemo(() => formatCampaignName(rawCampaign), [rawCampaign]);
 
+  // Detect country code from query string (?country=, ?cc=, ?c_code=) or infer from campaign
+  const queryCountry =
+    searchParams.get("country") ||
+    searchParams.get("cc") ||
+    searchParams.get("c_code");
+
+  const initialCountryCode = useMemo(() => {
+    if (queryCountry) {
+      const q = queryCountry.trim().toUpperCase();
+      const match = ALL_COUNTRIES.find(
+        (c) => c.code.toUpperCase() === q || c.dialCode.replace("+", "") === q.replace("+", "")
+      );
+      if (match) return match.code;
+    }
+    const camp = (rawCampaign || "").toLowerCase();
+    if (camp.includes("mumbai") || camp.includes("india")) {
+      return "IN";
+    }
+    if (camp.includes("dubai") || camp.includes("uae")) {
+      return "AE";
+    }
+    if (camp.includes("london") || camp.includes("uk")) {
+      return "GB";
+    }
+    // Default to Sri Lanka (+94)
+    return "LK";
+  }, [queryCountry, rawCampaign]);
+
   // Form states
   const [firstName, setFirstName] = useState("");
   const [contactMethod, setContactMethod] = useState<"whatsapp" | "email">("whatsapp");
   const [email, setEmail] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("IN"); // Default India +91 for Mumbai
+  const [selectedCountryCode, setSelectedCountryCode] = useState(initialCountryCode);
   const activeCountry = useMemo(
     () => ALL_COUNTRIES.find((c) => c.code === selectedCountryCode) || TOP_COUNTRIES[0],
     [selectedCountryCode]
@@ -510,7 +545,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   // Alternate contact method for Thank You page
   const [altEmail, setAltEmail] = useState("");
   const [altPhone, setAltPhone] = useState("");
-  const [altCountryCode, setAltCountryCode] = useState("IN");
+  const [altCountryCode, setAltCountryCode] = useState(initialCountryCode);
   const activeAltCountry = useMemo(
     () => ALL_COUNTRIES.find((c) => c.code === altCountryCode) || TOP_COUNTRIES[0],
     [altCountryCode]
@@ -538,6 +573,18 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   useEffect(() => {
     renderTimeRef.current = Date.now();
   }, []);
+
+  // Sync country code if query param / campaign changes after mount
+  useEffect(() => {
+    if (initialCountryCode) {
+      setSelectedCountryCode(initialCountryCode);
+      setAltCountryCode(initialCountryCode);
+      const match = ALL_COUNTRIES.find((c) => c.code === initialCountryCode);
+      if (match) {
+        setCountry((prev) => (prev ? prev : match.name));
+      }
+    }
+  }, [initialCountryCode]);
 
   const storeTags = initialTags.filter((tag) =>
     (STORE_SLUGS as readonly string[]).includes(tag.slug)
@@ -602,20 +649,21 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const handlePhoneChange = (val: string) => {
     // If user pastes/types with +, detect matching country code
     if (val.startsWith("+")) {
-      const match = ALL_COUNTRIES.find((c) => val.startsWith(c.dialCode));
+      const sortedByDialLen = [...ALL_COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
+      const match = sortedByDialLen.find((c) => val.startsWith(c.dialCode));
       if (match) {
         setSelectedCountryCode(match.code);
-        const remainder = val.slice(match.dialCode.length).trim().replace(/[^\d\s-]/g, "");
-        setPhoneNumber(remainder);
+        const remainder = val.slice(match.dialCode.length);
+        const cleanedRemainder = cleanPhoneNumber(remainder);
+        const { maxDigits } = getCountryPhoneRules(match);
+        setPhoneNumber(cleanedRemainder.slice(0, maxDigits));
         return;
       }
     }
-    // Auto-strip leading 0 if Indian number (+91)
-    let clean = val.replace(/[^\d\s-]/g, "");
-    if (activeCountry.code === "IN" && clean.startsWith("0")) {
-      clean = clean.replace(/^0+/, "");
-    }
-    setPhoneNumber(clean);
+    // Auto-strip leading 0 and any non-digits (e.g. 076... -> 76...)
+    const clean = cleanPhoneNumber(val);
+    const { maxDigits } = getCountryPhoneRules(activeCountry);
+    setPhoneNumber(clean.slice(0, maxDigits));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -651,14 +699,9 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         return;
       }
     } else {
-      if (!cleanPhone) {
-        setErrorMessage(ERROR_MESSAGES.phone_required);
-        setErrorField("phone");
-        phoneInputRef.current?.focus();
-        return;
-      }
-      if (cleanPhone.length < 6 || cleanPhone.length > 15) {
-        setErrorMessage(ERROR_MESSAGES.invalid_phone);
+      const phoneValidation = validatePhoneNumber(phoneNumber, activeCountry);
+      if (!phoneValidation.valid) {
+        setErrorMessage(phoneValidation.message || ERROR_MESSAGES.invalid_phone);
         setErrorField("phone");
         phoneInputRef.current?.focus();
         return;
@@ -758,7 +801,16 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
     const cleanCountry = country.replace(/^[\p{Extended_Pictographic}\s]+/u, "").trim();
     const cleanLastName = lastName.trim();
     const cleanAltEmail = altEmail.trim().toLowerCase();
-    const cleanAltPhone = altPhone.replace(/\D/g, "");
+    let cleanAltPhone = cleanPhoneNumber(altPhone);
+
+    if (contactMethod === "email" && altPhone.trim()) {
+      const altValidation = validatePhoneNumber(altPhone, activeAltCountry);
+      if (!altValidation.valid) {
+        setErrorMessage(altValidation.message || "Please enter a valid mobile number.");
+        return;
+      }
+      cleanAltPhone = altValidation.cleanPhone;
+    }
 
     const finalEmail = contactMethod === "email" ? (email.trim() || null) : (cleanAltEmail || null);
     const finalPhoneCountryCode =
@@ -769,8 +821,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         : null;
     const finalPhone =
       contactMethod === "whatsapp"
-        ? phoneNumber.trim() || null
-        : cleanAltPhone || null;
+        ? (cleanPhoneNumber(phoneNumber) || null)
+        : (cleanAltPhone || null);
 
     if (!cleanLastName && !cleanCountry && !cleanAltEmail && !cleanAltPhone) {
       setIsProfileSaved(true);
@@ -1069,8 +1121,13 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                           type="tel"
                           inputMode="tel"
                           value={altPhone}
-                          onChange={(e) => setAltPhone(e.target.value.replace(/[^\d\s-]/g, ""))}
-                          placeholder={activeAltCountry.code === "IN" ? "98765 43210" : "Mobile number"}
+                          onChange={(e) => {
+                            const clean = cleanPhoneNumber(e.target.value);
+                            const { maxDigits } = getCountryPhoneRules(activeAltCountry);
+                            setAltPhone(clean.slice(0, maxDigits));
+                          }}
+                          placeholder={activeAltCountry.placeholder || "Mobile number"}
+                          maxLength={(activeAltCountry.maxDigits || 12) + 2}
                           className="flex-1 min-w-0 px-2.5 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
                         />
                       </div>
@@ -1339,7 +1396,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                           setErrorField(null);
                         }
                       }}
-                      placeholder={activeCountry.code === "IN" ? "98765 43210" : "Mobile number"}
+                      placeholder={activeCountry.placeholder || "Mobile number"}
+                      maxLength={(activeCountry.maxDigits || 12) + 2}
                       className="flex-1 min-w-0 px-2.5 py-2.5 bg-transparent text-xs sm:text-sm text-charini-charcoal placeholder:text-charini-charcoal-dim/60 focus:outline-none"
                     />
                   </div>

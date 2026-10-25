@@ -153,13 +153,11 @@ export function validateSubscription(input: unknown): ValidationOutcome {
     return { ok: false, code: "invalid_email", field: "email" };
   }
 
-  // If phone is provided, validate length
+  // If phone is provided, validate length and strip any leading trunk zeros
   let cleanPhone = phoneNumber;
-  let cleanCode = phoneCountryCode || "+91";
+  let cleanCode = phoneCountryCode || "+94";
   if (cleanPhone) {
-    if (cleanCode === "+91" && cleanPhone.startsWith("0")) {
-      cleanPhone = cleanPhone.replace(/^0+/, "");
-    }
+    cleanPhone = cleanPhone.replace(/^0+/, "");
     if (cleanPhone.length < 6 || cleanPhone.length > 15) {
       return { ok: false, code: "invalid_phone", field: "phone" };
     }

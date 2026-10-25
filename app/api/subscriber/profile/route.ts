@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const cleanCountry = typeof country === "string" ? country.trim().slice(0, 100) : null;
     const cleanCode = typeof phoneCountryCode === "string" ? phoneCountryCode.trim().slice(0, 8) : null;
     const cleanPhone =
-      typeof phoneNumber === "string" ? phoneNumber.replace(/\D/g, "").slice(0, 20) : null;
+      typeof phoneNumber === "string" ? phoneNumber.replace(/\D/g, "").replace(/^0+/, "").slice(0, 20) : null;
     const cleanId =
       typeof subscriberId === "string" && /^[0-9a-fA-F-]{36}$/.test(subscriberId) ? subscriberId : null;
 
