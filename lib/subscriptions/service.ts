@@ -23,36 +23,45 @@ const INVALID_REASONS = new Set<SubscribeErrorCode>([
   "invalid_request",
 ]);
 
+const DEFAULT_CAMPAIGN = "Mumbai Pop-up";
+
 /**
- * Resolves raw campaign string against canonical campaigns table in database.
- * Falls back to formatted input or "Mumbai Pop-up".
+ * Validates campaign input strictly against registered campaigns in the database.
+ * Rejects arbitrary strings to prevent attribution tampering, falling back to the canonical default.
  */
 async function resolveCanonicalCampaign(
   source: string,
   supabase: NonNullable<ReturnType<typeof getSecretServerClient>>
 ): Promise<string> {
   const trimmed = source.trim();
-  if (!trimmed) return "Mumbai Pop-up";
+  if (!trimmed) return DEFAULT_CAMPAIGN;
 
   try {
     const { data: campaigns } = await (supabase.from("campaigns" as any) as any)
-      .select("name, slug");
+      .select("name, slug, is_default");
 
     if (campaigns && campaigns.length > 0) {
       const cleanSrc = trimmed.toLowerCase().replace(/[^a-z0-9]/g, "");
-      for (const camp of campaigns as Array<{ name: string; slug: string }>) {
+      for (const camp of campaigns as Array<{ name: string; slug: string; is_default?: boolean }>) {
         const cleanName = camp.name.toLowerCase().replace(/[^a-z0-9]/g, "");
         const cleanSlug = camp.slug.toLowerCase().replace(/[^a-z0-9]/g, "");
         if (cleanSrc === cleanName || cleanSrc === cleanSlug) {
           return camp.name;
         }
       }
+
+      // Use default campaign configured in database if available
+      const defaultCamp = (campaigns as Array<{ name: string; is_default?: boolean }>).find(
+        (c) => c.is_default
+      );
+      if (defaultCamp) return defaultCamp.name;
     }
   } catch (err) {
     console.error("[service.ts] Campaign lookup error:", err);
   }
 
-  return trimmed;
+  // Reject unrecognized arbitrary strings and default securely
+  return DEFAULT_CAMPAIGN;
 }
 
 /**
@@ -93,18 +102,6 @@ export async function subscribe(
   }
 
   const outcome = result as RpcResult;
-
-  // Ensure the subscriber record reflects the resolved source, even for existing/resubscribing users
-  if (outcome?.id && resolvedSource) {
-    try {
-      await supabase
-        .from("subscribers")
-        .update({ source: resolvedSource, updated_at: new Date().toISOString() })
-        .eq("id", outcome.id);
-    } catch (updateErr) {
-      console.error("[subscribe] Could not update subscriber source:", updateErr);
-    }
-  }
 
   switch (outcome?.status) {
     case "subscribed":

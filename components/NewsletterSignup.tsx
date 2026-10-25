@@ -531,6 +531,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
   // Profile details state (on completion screen for personalised invitations)
   const [subscriberId, setSubscriberId] = useState<string | null>(null);
+  const [profileToken, setProfileToken] = useState<string | null>(null);
   const [lastName, setLastName] = useState("");
   const [country, setCountry] = useState("");
   const selectedCountryObj = useMemo(() => {
@@ -786,6 +787,9 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
 
       if (data.ok && data.subscriberId) {
         setSubscriberId(data.subscriberId);
+        if (data.profileToken) {
+          setProfileToken(data.profileToken);
+        }
       }
 
       setIsSuccess(true);
@@ -835,6 +839,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          profileToken,
           subscriberId,
           firstName: firstName.trim() || null,
           lastName: cleanLastName || null,

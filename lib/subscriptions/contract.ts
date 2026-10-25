@@ -53,7 +53,7 @@ export type SubscribeField =
   | "consent";
 
 export type SubscribeResponse =
-  | { ok: true; subscriberId?: string }
+  | { ok: true; subscriberId?: string; profileToken?: string }
   | { ok: false; code: SubscribeErrorCode; field?: SubscribeField };
 
 /** Visitor-facing copy for every outcome. Never includes internal details. */

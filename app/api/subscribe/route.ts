@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { validateSubscription } from "@/lib/subscriptions/validation";
 import { subscribe } from "@/lib/subscriptions/service";
+import { createProfileToken } from "@/lib/subscriptions/tokens";
 import type { SubscribeResponse } from "@/lib/subscriptions/contract";
 import { LIMITS } from "@/lib/config";
 
@@ -74,7 +75,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<SubscribeResp
       return NextResponse.json({ ok: false, code: result.code }, { status: 400 });
     }
 
-    return NextResponse.json({ ok: true, subscriberId: result.subscriberId });
+    const profileToken = result.subscriberId
+      ? createProfileToken(result.subscriberId)
+      : undefined;
+
+    return NextResponse.json({
+      ok: true,
+      subscriberId: result.subscriberId,
+      profileToken,
+    });
   } catch (err) {
     console.error("[api/subscribe] Unexpected error:", err);
     return NextResponse.json({ ok: false, code: "server_error" }, { status: 500 });
