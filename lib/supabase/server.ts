@@ -27,7 +27,10 @@ let secretClient: SupabaseClient | null = null;
 export function getPublicServerClient(): SupabaseClient | null {
   if (publicClient) return publicClient;
   const url = readUrl();
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   publicClient = createClient(url, key, clientOptions);
   return publicClient;
@@ -36,7 +39,10 @@ export function getPublicServerClient(): SupabaseClient | null {
 export function getSecretServerClient(): SupabaseClient | null {
   if (secretClient) return secretClient;
   const url = readUrl();
-  const key = process.env.SUPABASE_SECRET_KEY;
+  const key =
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) return null;
   secretClient = createClient(url, key, clientOptions);
   return secretClient;

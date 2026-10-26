@@ -3,10 +3,10 @@ import crypto from "crypto";
 const PROFILE_TOKEN_TTL_MS = 20 * 60 * 1000; // 20 minutes
 
 function getSigningSecret(): string {
-  const secret = process.env.SUPABASE_SECRET_KEY;
+  const secret = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!secret || secret.trim().length < 16) {
     throw new Error(
-      "[tokens] Critical Security Error: SUPABASE_SECRET_KEY is not configured with adequate entropy."
+      "[tokens] Critical Security Error: SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is not configured with adequate entropy."
     );
   }
   return secret.trim();
