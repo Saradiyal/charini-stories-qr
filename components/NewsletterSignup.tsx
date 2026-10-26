@@ -14,6 +14,7 @@ import {
   SPECIFIC_CUTS_SLUG,
   CUT_TYPE_SLUGS,
   CUT_TYPE_OPTIONS,
+  LIMITS,
 } from "@/lib/config";
 import {
   TOP_COUNTRIES,
@@ -570,6 +571,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
   const emailInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const storeSectionRef = useRef<HTMLDivElement>(null);
+  const noteInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     renderTimeRef.current = Date.now();
@@ -734,15 +736,26 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         .map((tag) => tag.label);
 
       let finalNote: string | null = null;
-      if (isSpecificCutsSelected) {
-        const userTypedNote = specificCutsNote.trim();
-        if (selectedCutLabels.length > 0 && userTypedNote) {
-          finalNote = `${selectedCutLabels.join(", ")} — ${userTypedNote}`;
-        } else if (selectedCutLabels.length > 0) {
-          finalNote = selectedCutLabels.join(", ");
-        } else if (userTypedNote) {
-          finalNote = userTypedNote;
-        }
+      const userTypedNote = specificCutsNote
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+      if (selectedCutLabels.length > 0 && userTypedNote) {
+        finalNote = `${selectedCutLabels.join(", ")} — ${userTypedNote}`;
+      } else if (selectedCutLabels.length > 0) {
+        finalNote = selectedCutLabels.join(", ");
+      } else if (userTypedNote) {
+        finalNote = userTypedNote;
+      }
+
+      if (finalNote && finalNote.length > LIMITS.specificCutsNoteMax) {
+        finalNote = finalNote.slice(0, LIMITS.specificCutsNoteMax);
+      }
+
+      const effectiveInterests = [...selectedInterests];
+      if (finalNote && !effectiveInterests.includes(SPECIFIC_CUTS_SLUG)) {
+        effectiveInterests.push(SPECIFIC_CUTS_SLUG);
       }
 
       const payload: SubscribeRequestBody = {
@@ -750,7 +763,7 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
         email: contactMethod === "email" ? trimmedEmail : null,
         phoneCountryCode: contactMethod === "whatsapp" ? phoneCountryCode : null,
         phoneNumber: contactMethod === "whatsapp" ? cleanPhone : null,
-        interests: selectedInterests,
+        interests: effectiveInterests,
         specificCutsNote: finalNote,
         marketingConsent: consent,
         source: campaignName,
@@ -778,6 +791,8 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
             emailInputRef.current?.focus();
           } else if (data.field === "phone") {
             phoneInputRef.current?.focus();
+          } else if (data.field === "specificCutsNote") {
+            noteInputRef.current?.focus();
           }
         } else {
           setErrorMessage(ERROR_MESSAGES.server_error);
@@ -1591,18 +1606,67 @@ export default function NewsletterSignup({ initialTags }: NewsletterSignupProps)
                       );
                     })}
                   </div>
-
-                  {/* Custom Cut Notes input */}
-                  <input
-                    type="text"
-                    maxLength={500}
-                    value={specificCutsNote}
-                    onChange={(e) => setSpecificCutsNote(e.target.value)}
-                    placeholder="Any other specific cuts or requests (optional)"
-                    className="w-full min-h-[42px] px-3.5 py-2 bg-white text-xs text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border border-charini-border focus:border-charini-charcoal transition-colors duration-150 rounded-full mt-1"
-                  />
                 </div>
               )}
+            </div>
+
+            {/* 3c. Additional Notes */}
+            <div className="w-full flex flex-col">
+              <div className="flex items-baseline justify-between mb-2">
+                <label
+                  htmlFor="additional-notes"
+                  className="font-sans text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal cursor-pointer"
+                >
+                  Additional Notes
+                </label>
+                <span className="font-sans text-[10px] text-charini-charcoal-dim">
+                  Optional
+                </span>
+              </div>
+              <div className="relative w-full">
+                <textarea
+                  id="additional-notes"
+                  name="additionalNotes"
+                  ref={noteInputRef}
+                  rows={3}
+                  maxLength={LIMITS.additionalNotesUiMax}
+                  value={specificCutsNote}
+                  onChange={(e) => {
+                    const sanitized = e.target.value
+                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+                      .replace(/\n{3,}/g, "\n\n")
+                      .slice(0, LIMITS.additionalNotesUiMax);
+                    setSpecificCutsNote(sanitized);
+                    if (errorField === "specificCutsNote") {
+                      setErrorMessage(null);
+                      setErrorField(null);
+                    }
+                  }}
+                  placeholder="Sizing preferences, upcoming occasions, or specific style requests..."
+                  className={`w-full px-3.5 py-2.5 bg-white text-xs sm:text-[13px] text-charini-charcoal placeholder:text-charini-charcoal-dim/60 border ${
+                    errorField === "specificCutsNote"
+                      ? "border-charini-error focus:border-charini-error"
+                      : "border-charini-border focus:border-charini-charcoal"
+                  } focus:ring-1 focus:ring-charini-charcoal/20 transition-all duration-150 rounded-2xl resize-none outline-none leading-relaxed shadow-xs`}
+                />
+                <div className="flex justify-between items-center px-1 pt-1.5">
+                  <span className="font-sans text-[10px] text-charini-charcoal-dim/75">
+                    Sizing, occasion dates, or styling requests
+                  </span>
+                  <span
+                    aria-live="polite"
+                    className={`font-sans text-[10px] tabular-nums transition-colors duration-150 ${
+                      specificCutsNote.length >= LIMITS.additionalNotesUiMax
+                        ? "text-charini-charcoal font-semibold"
+                        : specificCutsNote.length >= LIMITS.additionalNotesUiMax - 40
+                        ? "text-charini-charcoal-muted"
+                        : "text-charini-charcoal-dim/60"
+                    }`}
+                  >
+                    {specificCutsNote.length}/{LIMITS.additionalNotesUiMax}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* 4. Marketing Consent Checkbox */}

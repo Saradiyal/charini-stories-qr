@@ -36,6 +36,7 @@ export const CUT_TYPE_OPTIONS = [
 export const LIMITS = {
   emailMax: 254,
   specificCutsNoteMax: 500,
+  additionalNotesUiMax: 300,
   maxInterests: 20,
   slugMax: 64,
   requestBodyBytes: 8 * 1024,

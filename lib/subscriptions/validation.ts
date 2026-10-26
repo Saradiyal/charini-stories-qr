@@ -169,10 +169,27 @@ export function validateSubscription(input: unknown): ValidationOutcome {
     return { ok: false, code: "store_required", field: "stores" };
   }
 
-  // The note is only meaningful (and only stored) with the Specific Cuts tag.
-  const note = interests.includes(SPECIFIC_CUTS_SLUG) && specificCutsNote ? specificCutsNote : null;
-  if (note && note.length > LIMITS.specificCutsNoteMax) {
-    return { ok: false, code: "note_too_long", field: "specificCutsNote" };
+  // Sanitize and validate additional note
+  let finalInterests = [...interests];
+  let note: string | null = null;
+  if (specificCutsNote && specificCutsNote.trim().length > 0) {
+    // Strip control characters and collapse excessive newlines
+    const cleanNote = specificCutsNote
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    if (cleanNote.length > LIMITS.specificCutsNoteMax) {
+      return { ok: false, code: "note_too_long", field: "specificCutsNote" };
+    }
+
+    if (cleanNote.length > 0) {
+      note = cleanNote;
+      // Auto-include SPECIFIC_CUTS_SLUG to ensure database stored procedure saves the note
+      if (!finalInterests.includes(SPECIFIC_CUTS_SLUG)) {
+        finalInterests.push(SPECIFIC_CUTS_SLUG);
+      }
+    }
   }
 
   return {
@@ -182,7 +199,7 @@ export function validateSubscription(input: unknown): ValidationOutcome {
       email: email || null,
       phoneCountryCode: cleanPhone ? cleanCode : null,
       phoneNumber: cleanPhone || null,
-      interests,
+      interests: finalInterests,
       specificCutsNote: note,
       marketingConsent,
       source: source || "Mumbai Pop-up",

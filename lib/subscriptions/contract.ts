@@ -68,7 +68,7 @@ export const ERROR_MESSAGES: Record<SubscribeErrorCode | "network", string> = {
   consent_required: "Please confirm your consent to receive updates.",
   interests_required: "Please choose at least one brand.",
   invalid_interests: "Please choose from the options shown.",
-  note_too_long: "Please keep this under 500 characters.",
+  note_too_long: "Please keep your additional notes under 300 characters.",
   already_subscribed: "You are already subscribed. We\u2019ve updated your preferences.",
   rate_limited: "Too many attempts. Please wait a few minutes and try again.",
   invalid_request: "Something went wrong. Please try again.",
