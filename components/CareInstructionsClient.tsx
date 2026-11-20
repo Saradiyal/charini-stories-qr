@@ -13,32 +13,113 @@ interface CareSection {
   details: string[];
 }
 
+interface CareSymbol {
+  label: string;
+  sublabel: string;
+  icon: React.ReactNode;
+}
+
 interface FabricCareData {
   id: FabricType;
   name: string;
   subtitle: string;
   badge: string;
   description: string;
-  symbols: { label: string; icon: string }[];
+  symbols: CareSymbol[];
   sections: CareSection[];
   dos: string[];
   donts: string[];
 }
 
+// Precision SVG International Laundry Symbols (ISO 3758 Luxury Line-Art)
+const LaundryIcons = {
+  wash30: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 8.5h18l-1.8 10.2A2 2 0 0117.2 20H6.8a2 2 0 01-1.98-1.3L3 8.5z" />
+      <path d="M3 8.5c1.5-1 3-1 4.5 0s3 1 4.5 0 3-1 4.5 0 3 1 4.5 0" strokeDasharray="1 1.5" />
+      <text x="12" y="16" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor" stroke="none" fontFamily="sans-serif">30°</text>
+    </svg>
+  ),
+  washHand: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5h18l-1.8 9.2A2 2 0 0117.2 20H6.8a2 2 0 01-1.98-1.3L3 9.5z" />
+      <path d="M12 4v4m-2-3l2-2 2 2" />
+      <path d="M9.5 7.5a1.5 1.5 0 013 0v4.5" />
+    </svg>
+  ),
+  washGentle: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 8.5h18l-1.8 10.2A2 2 0 0117.2 20H6.8a2 2 0 01-1.98-1.3L3 8.5z" />
+      <path d="M4 22h16" />
+      <text x="12" y="15.5" textAnchor="middle" fontSize="6" fontWeight="600" fill="currentColor" stroke="none" fontFamily="sans-serif">COLD</text>
+    </svg>
+  ),
+  doNotBleach: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3.5L2.5 20h19L12 3.5z" />
+      <path d="M4.5 6.5l15 13.5" />
+      <path d="M19.5 6.5L4.5 20" />
+    </svg>
+  ),
+  lineDryShade: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
+      <path d="M4.5 9l4.5-4.5M4.5 13l8.5-8.5" />
+      <path d="M4 4.5c4 2.5 12 2.5 16 0" />
+    </svg>
+  ),
+  flatDryShade: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
+      <path d="M4.5 9l4.5-4.5M4.5 13l8.5-8.5" />
+      <line x1="7" y1="12" x2="17" y2="12" strokeWidth={2} />
+    </svg>
+  ),
+  ironMedium: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 17h17a2.5 2.5 0 002.5-2.5c0-3.5-3-5.5-7.5-5.5H3v8z" />
+      <path d="M5 9V6h10" />
+      <circle cx="10" cy="14" r="0.9" fill="currentColor" />
+      <circle cx="14" cy="14" r="0.9" fill="currentColor" />
+    </svg>
+  ),
+  ironLow: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 17h17a2.5 2.5 0 002.5-2.5c0-3.5-3-5.5-7.5-5.5H3v8z" />
+      <path d="M5 9V6h10" />
+      <circle cx="12" cy="14" r="0.9" fill="currentColor" />
+    </svg>
+  ),
+  dryCleanP: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.5" />
+      <text x="12" y="15" textAnchor="middle" fontSize="9" fontWeight="600" fill="currentColor" stroke="none" fontFamily="sans-serif">P</text>
+    </svg>
+  ),
+  noTumble: (
+    <svg className="w-5 h-5 text-charini-charcoal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
+      <circle cx="12" cy="12" r="6" />
+      <line x1="4.5" y1="4.5" x2="19.5" y2="19.5" />
+      <line x1="19.5" y1="4.5" x2="4.5" y2="19.5" />
+    </svg>
+  ),
+};
+
 const CARE_DATA: Record<FabricType, FabricCareData> = {
   cotton: {
     id: "cotton",
     name: "100% Cotton",
-    subtitle: "Pure Natural Weaves & Designer Prints",
+    subtitle: "Pure Natural Weaves & Hand Prints",
     badge: "Breathable & Enduring",
     description:
-      "Crafted from 100% natural cotton fibers, our pieces are designed for effortless comfort and breathability in tropical and warm climates. Natural cotton softens gracefully with each wash when treated with gentle care.",
+      "Crafted from 100% natural cotton fibers, our pieces offer effortless ease, breathability, and enduring comfort. Natural cotton softens gracefully with each wash when nurtured with gentle, mindful care.",
     symbols: [
-      { label: "Cold Wash 30°C", icon: "30°" },
-      { label: "Do Not Bleach", icon: "△" },
-      { label: "Line Dry in Shade", icon: "⌂" },
-      { label: "Warm Iron", icon: "••" },
-      { label: "Dry Cleanable", icon: "Ⓟ" },
+      { label: "Cold Wash", sublabel: "Max 30°C", icon: LaundryIcons.wash30 },
+      { label: "Do Not Bleach", sublabel: "No Chlorine", icon: LaundryIcons.doNotBleach },
+      { label: "Line Dry", sublabel: "In Shade", icon: LaundryIcons.lineDryShade },
+      { label: "Medium Iron", sublabel: "Warm / Steam", icon: LaundryIcons.ironMedium },
+      { label: "Dry Cleanable", sublabel: "Standard P", icon: LaundryIcons.dryCleanP },
     ],
     sections: [
       {
@@ -49,10 +130,10 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Hand wash or use a gentle, low-spin machine cycle in cold or lukewarm water (maximum 30°C / 85°F).",
-          "Use a gentle, pH-neutral liquid detergent formulated for fine natural textiles.",
-          "Wash like colors together. Turn printed garments inside out before washing to safeguard artistic pigments.",
-          "Avoid heavy chemical detergents, fabric softeners with brighteners, or chlorine bleach.",
+          "Hand wash or use a gentle, low-spin cycle in cold or lukewarm water (max 30°C / 85°F).",
+          "Use a mild, pH-neutral liquid detergent formulated for fine natural cotton.",
+          "Wash like colors together. Turn printed garments inside out before washing to safeguard pigments.",
+          "Avoid harsh powdered detergents, optical brighteners, and chlorine bleach.",
         ],
       },
       {
@@ -63,9 +144,9 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Gently reshape the garment while still damp and line-dry naturally in a shaded, well-ventilated breeze.",
-          "Avoid direct midday sun, which can cause natural cotton fibers to stiffen and colors to fade.",
-          "Do not tumble dry on high heat; intense machine heat causes fiber shrinkage and weakens seams.",
+          "Gently reshape the garment while still damp and line-dry naturally in shaded breeze.",
+          "Avoid direct midday sun, which can stiffen natural cotton fibers and fade colors.",
+          "Avoid tumble drying on high heat; high heat causes shrinkage and weakens structural seams.",
         ],
       },
       {
@@ -76,9 +157,9 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Iron on medium-warm heat (cotton setting) while the fabric is still slightly damp for crisp, smooth results.",
-          "Steam pressing is highly recommended—it relaxes cotton fibers naturally without crushing the weave.",
-          "Always iron printed sections inside-out to protect decorative detailing.",
+          "Iron on medium-warm heat (cotton setting) while the fabric is slightly damp for smooth results.",
+          "Steam pressing is highly recommended—it relaxes cotton fibers naturally without crushing weave.",
+          "Always iron printed sections inside-out to protect decorative details.",
         ],
       },
       {
@@ -90,7 +171,7 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
         ),
         details: [
           "Store in a dry, well-ventilated wardrobe away from humidity and dampness.",
-          "Hang shirt dresses and structured silhouettes on rounded wooden or padded hangers to maintain shoulder form.",
+          "Hang structured silhouettes on rounded wooden or padded hangers to maintain shoulder form.",
           "Fold skirts or casual cuts neatly with cedar balls or natural lavender sachets to deter moths.",
         ],
       },
@@ -111,16 +192,16 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
   silk: {
     id: "silk",
     name: "Blended Silk",
-    subtitle: "Fluid Drapes, Delicate Sheen & Artisan Blends",
+    subtitle: "Fluid Drapes & Delicate Luster",
     badge: "Delicate & Luxurious",
     description:
       "Our blended silks unite the incomparable drape and luminous glow of silk with the breathability of fine natural fibers. These pieces demand delicate handling to protect their luxurious weave and subtle luster.",
     symbols: [
-      { label: "Hand Wash Cold", icon: "🖐" },
-      { label: "Do Not Bleach", icon: "△" },
-      { label: "Dry Flat in Shade", icon: "▭" },
-      { label: "Low Iron / Silk", icon: "•" },
-      { label: "Dry Clean Recommended", icon: "Ⓟ" },
+      { label: "Hand Wash", sublabel: "Cold Only", icon: LaundryIcons.washHand },
+      { label: "Do Not Bleach", sublabel: "No Chlorine", icon: LaundryIcons.doNotBleach },
+      { label: "Dry Flat", sublabel: "In Shade", icon: LaundryIcons.flatDryShade },
+      { label: "Low Iron", sublabel: "Silk Setting", icon: LaundryIcons.ironLow },
+      { label: "Dry Clean", sublabel: "Recommended", icon: LaundryIcons.dryCleanP },
     ],
     sections: [
       {
@@ -131,8 +212,8 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Professional dry cleaning is strongly recommended to preserve the original finish and structural silhouette.",
-          "If hand washing at home, submerge gently in cold water using a specialized silk or wool wash (pH-neutral).",
+          "Professional dry cleaning is strongly recommended to preserve the original finish and silhouette.",
+          "If hand washing at home, submerge gently in cold water using a specialized silk/delicate wash.",
           "Never soak for longer than 3–5 minutes. Gently swirl without rubbing or friction.",
           "Never use standard powdered detergents, stain removers, or bleaching agents.",
         ],
@@ -145,9 +226,9 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Do not wring, twist, or spin dry. Roll the garment inside a clean, dry white towel and gently press to extract moisture.",
+          "Do not wring, twist, or spin dry. Roll the garment inside a clean, dry white towel to gently extract moisture.",
           "Lay flat on a drying rack over a towel in the shade, away from direct sunlight and radiators.",
-          "Never tumble dry under any circumstance—heat damages silk protein fibers instantly.",
+          "Never tumble dry under any circumstance—heat damages delicate silk protein fibers.",
         ],
       },
       {
@@ -159,8 +240,8 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
         ),
         details: [
           "Iron on the reverse side on the lowest 'Silk' setting while the garment is slightly damp.",
-          "Always use a clean press cloth (like a thin cotton handkerchief) between the iron and silk surface.",
-          "Handheld garment steaming is ideal: keep the steamer nozzle at least 8–10 cm away to prevent water spotting.",
+          "Always place a clean cotton pressing cloth between the iron and silk surface.",
+          "Handheld garment steaming is ideal: keep the nozzle at least 8–10 cm away to prevent water spots.",
         ],
       },
       {
@@ -193,16 +274,16 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
   batik: {
     id: "batik",
     name: "Batik",
-    subtitle: "Artisan Hand-Dyed Heritage & Wax-Resist Craft",
-    badge: "Wearable Handcrafted Art",
+    subtitle: "Artisan Hand-Dyed Heritage",
+    badge: "Handcrafted Wearable Art",
     description:
       "Every CHARINI batik creation is a testament to heritage craftsmanship, individually wax-resisted and hand-dyed by master artisans in Sri Lanka. The slight nuances and natural variations are signatures of authentic handmade art.",
     symbols: [
-      { label: "Hand Wash Cold Separately", icon: "🖐" },
-      { label: "Mild / Natural Soap", icon: "🌱" },
-      { label: "Dry in Shade", icon: "⌂" },
-      { label: "Medium Iron on Reverse", icon: "••" },
-      { label: "No Harsh Chemicals", icon: "✕" },
+      { label: "Hand Wash", sublabel: "Cold Separately", icon: LaundryIcons.washHand },
+      { label: "Do Not Bleach", sublabel: "No Chemicals", icon: LaundryIcons.doNotBleach },
+      { label: "Dry in Shade", sublabel: "Inside-Out", icon: LaundryIcons.lineDryShade },
+      { label: "Medium Iron", sublabel: "On Reverse", icon: LaundryIcons.ironMedium },
+      { label: "No Tumble Dry", sublabel: "Air Dry Only", icon: LaundryIcons.noTumble },
     ],
     sections: [
       {
@@ -213,10 +294,10 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Always wash separately by hand in cold water for the first few washes. Natural artisan dyes may release excess surface tint without affecting depth.",
+          "Always wash separately by hand in cold water for initial washes. Artisan dyes may release slight surface tint.",
           "Use a gentle, natural soap or mild baby shampoo. Avoid commercial enzyme detergents or brighteners.",
           "Do not soak for extended periods—rinse swiftly and gently in fresh, cool water.",
-          "Never machine wash on aggressive cycles or with heavy fabrics like denim.",
+          "Never machine wash on aggressive cycles or together with coarse garments like denim.",
         ],
       },
       {
@@ -227,7 +308,7 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Dry inside-out in a cool, shaded area with plenty of air circulation.",
+          "Dry inside-out in a cool, shaded area with gentle air circulation.",
           "Never dry under intense direct sunlight, which gradually fades handcrafted artisan pigments.",
           "Gently press out excess water without harsh twisting, then hang or lay flat to dry naturally.",
           "Do not tumble dry.",
@@ -242,7 +323,7 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
         ),
         details: [
           "Always iron on the reverse (inside) of the fabric on medium heat.",
-          "If you must iron the face side, place a thin cotton pressing cloth over the batik artwork.",
+          "If pressing on the face side, place a clean cotton pressing cloth over the batik artwork.",
           "Steaming is wonderful for relaxing the weave while keeping the wax-resist artwork smooth and rich.",
         ],
       },
@@ -254,7 +335,7 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
           </svg>
         ),
         details: [
-          "Store in a cool, dry place shielded from prolonged sunlight and fluorescent store lights.",
+          "Store in a cool, dry place shielded from prolonged sunlight and bright showroom lights.",
           "Fold carefully or hang on sturdy wooden hangers that support the shoulders evenly.",
           "Avoid direct contact with mothballs or synthetic chemical repellents; prefer natural sandalwood or cedar.",
         ],
@@ -284,51 +365,53 @@ export default function CareInstructionsClient() {
   const fabric = CARE_DATA[activeFabric];
 
   return (
-    <div className="editorial-canvas min-h-screen flex flex-col justify-between py-10 sm:py-16 px-4 sm:px-6">
-      <div className="w-full max-w-[620px] mx-auto flex flex-col items-center">
-        {/* Top Return Link */}
-        <div className="w-full flex items-center justify-between mb-8">
+    <div className="editorial-canvas min-h-screen flex flex-col justify-between py-6 sm:py-12 px-3.5 sm:px-6">
+      <div className="w-full max-w-[580px] mx-auto flex flex-col items-center">
+        {/* Sleek Mobile-First Top Bar */}
+        <div className="w-full flex items-center justify-between mb-5 sm:mb-7">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-sans font-medium uppercase tracking-[0.16em] text-charini-charcoal-muted hover:text-charini-charcoal transition-colors group cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 border border-charini-border text-[11px] font-sans font-medium uppercase tracking-[0.14em] text-charini-charcoal hover:bg-black/5 transition-colors group cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
           >
-            <span className="group-hover:-translate-x-0.5 transition-transform">&larr;</span>
-            <span>Return to Signup</span>
+            <span className="text-xs group-hover:-translate-x-0.5 transition-transform">&larr;</span>
+            <span>Return</span>
           </Link>
-          <span className="font-serif italic text-xs text-charini-charcoal-dim">
+          <span className="font-serif italic text-xs sm:text-[13px] text-charini-charcoal-muted">
             Artisan Wearable Art
           </span>
         </div>
 
-        {/* Brand Emblem */}
-        <header className="flex flex-col items-center text-center mb-7">
-          <div className="relative w-[80px] sm:w-[95px] aspect-[3256/4088] mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]">
+        {/* Refined Brand Emblem Header */}
+        <header className="flex flex-col items-center text-center mb-6 sm:mb-8">
+          <div className="relative w-[56px] sm:w-[72px] aspect-[3256/4088] mb-3.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]">
             <Image
               src="/brand/charini-emblem.png"
               alt="CHARINI"
               fill
               priority
-              sizes="(max-width: 640px) 80px, 95px"
+              sizes="(max-width: 640px) 56px, 72px"
               className="object-contain"
             />
           </div>
 
-          <h1 className="font-serif text-3xl sm:text-4xl text-charini-charcoal font-normal tracking-tight mb-2">
+          <h1 className="font-serif text-2xl sm:text-4xl text-charini-charcoal font-normal tracking-tight mb-2">
             Garment Care Guide
           </h1>
-          <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted max-w-[420px] leading-relaxed">
+          <p className="font-sans text-[11.5px] sm:text-xs text-charini-charcoal-muted max-w-[380px] leading-relaxed px-2">
             Every CHARINI creation is handcrafted with mindful craftsmanship. Follow these curated instructions to preserve the beauty, touch, and longevity of your pieces.
           </p>
         </header>
 
-        {/* Fabric Selection Pills */}
-        <div className="w-full mb-7">
-          <div className="text-center mb-2.5">
-            <span className="font-sans text-[10px] font-semibold tracking-[0.2em] uppercase text-charini-charcoal-dim">
+        {/* Segmented Fabric Selection Pills */}
+        <div className="w-full mb-5 sm:mb-7">
+          <div className="text-center mb-2">
+            <span className="font-sans text-[9.5px] sm:text-[10px] font-semibold tracking-[0.2em] uppercase text-charini-charcoal-dim">
               Select Fabric
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-2.5 p-1 bg-white/80 backdrop-blur-xs rounded-full border border-charini-border shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+
+          {/* Touch-Friendly Segmented Control */}
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/90 backdrop-blur-xs rounded-full border border-charini-border shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             {(
               [
                 { id: "cotton", label: "100% Cotton" },
@@ -342,81 +425,94 @@ export default function CareInstructionsClient() {
                   key={item.id}
                   type="button"
                   onClick={() => setActiveFabric(item.id)}
-                  className={`min-h-[40px] px-2 py-2 rounded-full text-xs font-sans font-medium tracking-wide transition-all duration-150 cursor-pointer ${
+                  className={`min-h-[38px] sm:min-h-[42px] px-2 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-medium tracking-wide transition-all duration-200 cursor-pointer flex items-center justify-center text-center [font-variant-numeric:lining-nums] ${
                     isSelected
-                      ? "bg-charini-charcoal text-white shadow-xs"
-                      : "text-charini-charcoal-muted hover:text-charini-charcoal hover:bg-black/5"
+                      ? "bg-charini-charcoal text-white shadow-xs font-semibold scale-[1.01]"
+                      : "text-charini-charcoal-muted hover:text-charini-charcoal hover:bg-black/5 active:scale-95"
                   }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Active Fabric Content Card */}
-        <main className="w-full bg-white rounded-3xl p-6 sm:p-8 border border-charini-border shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col gap-6 animate-fade-in">
-          {/* Header of Active Fabric */}
-          <div className="border-b border-charini-border pb-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] sm:text-[11px] font-sans font-semibold tracking-widest uppercase px-3 py-1 rounded-full bg-charini-charcoal/5 text-charini-charcoal">
+        {/* Active Fabric Editorial Content Card */}
+        <main className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-charini-border shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col gap-5 sm:gap-6">
+          {/* Header of Active Fabric - Mobile Optimized with Clean Stack */}
+          <div className="border-b border-charini-border pb-4 sm:pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-2">
+              <span className="self-start inline-flex items-center text-[9.5px] sm:text-[10px] font-sans font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-charini-charcoal/5 text-charini-charcoal border border-charini-border/70">
                 {fabric.badge}
               </span>
-              <span className="text-[11px] font-serif italic text-charini-charcoal-muted">
+              <span className="text-[11px] sm:text-xs font-serif italic text-charini-charcoal-muted">
                 {fabric.subtitle}
               </span>
             </div>
-            <h2 className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-medium">
+
+            {/* Title with lining numbers so 100% is not dropped */}
+            <h2 className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-normal tracking-tight [font-variant-numeric:lining-nums]">
               {fabric.name}
             </h2>
-            <p className="font-sans text-xs sm:text-[13px] text-charini-charcoal-muted mt-2 leading-relaxed">
+
+            <p className="font-sans text-[12px] sm:text-[13px] text-charini-charcoal-muted mt-2 leading-relaxed">
               {fabric.description}
             </p>
           </div>
 
-          {/* Quick Care Symbols Bar */}
-          <div className="bg-[#FAF9F7] rounded-2xl p-4 border border-charini-border/80">
-            <span className="block text-[10px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal-dim mb-3 text-center sm:text-left">
-              Quick Care Reference
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+          {/* Quick Care Reference (Clean Responsive Grid with Authentic SVG Symbols) */}
+          <div className="bg-[#FAF9F7] rounded-2xl p-3 sm:p-4 border border-charini-border/70">
+            <div className="flex items-center justify-between mb-2.5 px-0.5">
+              <span className="text-[9.5px] sm:text-[10px] font-semibold tracking-[0.16em] uppercase text-charini-charcoal-dim">
+                Care Symbols
+              </span>
+              <span className="text-[10px] font-sans text-charini-charcoal-dim hidden sm:inline">
+                ISO 3758 Standards
+              </span>
+            </div>
+
+            {/* Horizontal Scroll on small phones, 5-col on tablets */}
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
               {fabric.symbols.map((sym, idx) => (
                 <div
                   key={idx}
-                  className="bg-white rounded-xl py-2.5 px-2 border border-charini-border/60 flex flex-col items-center justify-center gap-1"
+                  className="bg-white rounded-xl py-2 px-1 sm:px-2 border border-charini-border/60 flex flex-col items-center justify-center text-center shadow-[0_1px_2px_rgba(0,0,0,0.02)] min-h-[64px]"
                 >
-                  <span className="w-7 h-7 rounded-full bg-[#FAF9F7] border border-charini-border/80 flex items-center justify-center text-xs font-semibold text-charini-charcoal">
+                  <div className="w-7 h-7 rounded-full bg-[#FAF9F7] flex items-center justify-center mb-1">
                     {sym.icon}
-                  </span>
-                  <span className="font-sans text-[10px] text-charini-charcoal-muted leading-tight">
+                  </div>
+                  <span className="font-sans text-[10px] font-medium text-charini-charcoal leading-tight line-clamp-1">
                     {sym.label}
+                  </span>
+                  <span className="font-sans text-[8.5px] text-charini-charcoal-muted leading-tight mt-0.5">
+                    {sym.sublabel}
                   </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Detailed Instructions Grid */}
-          <div className="space-y-4">
+          {/* Detailed Instructions (Clean Mobile Touch Cards) */}
+          <div className="space-y-3 sm:space-y-3.5">
             {fabric.sections.map((section, idx) => (
               <div
                 key={idx}
-                className="p-4 sm:p-5 rounded-2xl border border-charini-border/80 bg-[#FAF9F7]/60 hover:bg-[#FAF9F7] transition-colors"
+                className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-charini-border/70 bg-[#FAF9F7]/70"
               >
-                <div className="flex items-center gap-2.5 mb-2.5">
-                  <div className="w-7 h-7 rounded-full bg-white border border-charini-border flex items-center justify-center shadow-xs shrink-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-white border border-charini-border flex items-center justify-center shadow-xs shrink-0">
                     {section.icon}
                   </div>
-                  <h3 className="font-sans text-xs sm:text-sm font-semibold text-charini-charcoal tracking-wide">
+                  <h3 className="font-sans text-[12px] sm:text-[13px] font-semibold text-charini-charcoal tracking-wide">
                     {section.title}
                   </h3>
                 </div>
-                <ul className="space-y-1.5 pl-9">
+                <ul className="space-y-1.5 pl-8 sm:pl-8">
                   {section.details.map((detail, dIdx) => (
                     <li
                       key={dIdx}
-                      className="font-sans text-xs text-charini-charcoal-muted leading-relaxed list-disc marker:text-charini-charcoal-dim"
+                      className="font-sans text-[11.5px] sm:text-xs text-charini-charcoal-muted leading-relaxed list-disc marker:text-charini-charcoal-dim/70"
                     >
                       {detail}
                     </li>
@@ -426,21 +522,21 @@ export default function CareInstructionsClient() {
             ))}
           </div>
 
-          {/* Dos & Don'ts */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
+          {/* Do's & Don'ts - Mobile Friendly Clean Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {/* The Do's */}
-            <div className="p-4 rounded-2xl bg-[#F6FAF7] border border-[#D1E7D8]">
-              <div className="flex items-center gap-2 mb-2.5 text-[#1E5D38]">
-                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div className="p-3.5 rounded-xl sm:rounded-2xl bg-[#F6FAF7] border border-[#D5EADB]">
+              <div className="flex items-center gap-1.5 mb-2 text-[#1E5D38]">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span className="font-sans text-xs font-semibold uppercase tracking-wider">
+                <span className="font-sans text-[10.5px] font-semibold uppercase tracking-wider">
                   Always Do
                 </span>
               </div>
-              <ul className="space-y-1.5 text-xs text-[#2A5E3E]">
+              <ul className="space-y-1.5 text-[11px] sm:text-xs text-[#2A5E3E]">
                 {fabric.dos.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5">
+                  <li key={idx} className="flex items-start gap-1.5 leading-snug">
                     <span className="text-[#1E5D38] font-bold">&bull;</span>
                     <span>{item}</span>
                   </li>
@@ -449,18 +545,18 @@ export default function CareInstructionsClient() {
             </div>
 
             {/* The Don'ts */}
-            <div className="p-4 rounded-2xl bg-[#FFF6F6] border border-[#FAD7D7]">
-              <div className="flex items-center gap-2 mb-2.5 text-[#A32D2D]">
-                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div className="p-3.5 rounded-xl sm:rounded-2xl bg-[#FFF6F6] border border-[#FAD7D7]">
+              <div className="flex items-center gap-1.5 mb-2 text-[#A32D2D]">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <span className="font-sans text-xs font-semibold uppercase tracking-wider">
-                  Avoid
+                <span className="font-sans text-[10.5px] font-semibold uppercase tracking-wider">
+                  Please Avoid
                 </span>
               </div>
-              <ul className="space-y-1.5 text-xs text-[#8A2424]">
+              <ul className="space-y-1.5 text-[11px] sm:text-xs text-[#8A2424]">
                 {fabric.donts.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5">
+                  <li key={idx} className="flex items-start gap-1.5 leading-snug">
                     <span className="text-[#A32D2D] font-bold">&times;</span>
                     <span>{item}</span>
                   </li>
@@ -469,11 +565,11 @@ export default function CareInstructionsClient() {
             </div>
           </div>
 
-          {/* Bottom Back Button */}
-          <div className="pt-4 border-t border-charini-border flex justify-center">
+          {/* Bottom Return Button */}
+          <div className="pt-3 border-t border-charini-border flex justify-center">
             <Link
               href={backHref}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-charini-charcoal hover:bg-[#333336] text-white font-sans text-xs font-medium tracking-wide transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-charini-charcoal hover:bg-[#333336] active:scale-[0.99] text-white font-sans text-xs font-medium tracking-wide transition-all cursor-pointer shadow-xs"
             >
               <span>Return to Signup</span>
               <span>&rarr;</span>
@@ -482,9 +578,9 @@ export default function CareInstructionsClient() {
         </main>
       </div>
 
-      {/* Footer */}
-      <footer className="text-center mt-12">
-        <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-charini-charcoal-dim/60 font-light">
+      {/* Editorial Footer */}
+      <footer className="text-center mt-8 sm:mt-12">
+        <p className="font-sans text-[9.5px] sm:text-[10px] tracking-[0.2em] uppercase text-charini-charcoal-dim/60 font-light">
           CHARINI &bull; Wearable Expressions of Art &bull; {new Date().getFullYear()}
         </p>
       </footer>
