@@ -16,11 +16,11 @@ values (
   'Mumbai Pop-up',
   'mumbai-pop-up',
   'Default QR code printed for Mumbai Pop-up event',
-  'https://charini-qr.vercel.app/',
+  'https://charini-stories-qr.vercel.app/',
   true
 )
 on conflict (slug) do update
-set is_default = true, qr_url = 'https://charini-qr.vercel.app/';
+set is_default = true, qr_url = 'https://charini-stories-qr.vercel.app/';
 
 -- Enable Row Level Security and service_role access
 alter table public.campaigns enable row level security;
