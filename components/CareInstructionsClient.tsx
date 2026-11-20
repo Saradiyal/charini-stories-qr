@@ -22,8 +22,6 @@ interface CareSymbol {
 interface FabricCareData {
   id: FabricType;
   name: string;
-  subtitle: string;
-  badge: string;
   description: string;
   symbols: CareSymbol[];
   sections: CareSection[];
@@ -110,8 +108,6 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
   cotton: {
     id: "cotton",
     name: "100% Cotton",
-    subtitle: "Pure Natural Weaves & Hand Prints",
-    badge: "Breathable & Enduring",
     description:
       "Crafted from 100% natural cotton fibers, our pieces offer effortless ease, breathability, and enduring comfort. Natural cotton softens gracefully with each wash when nurtured with gentle, mindful care.",
     symbols: [
@@ -192,8 +188,6 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
   silk: {
     id: "silk",
     name: "Blended Silk",
-    subtitle: "Fluid Drapes & Delicate Luster",
-    badge: "Delicate & Luxurious",
     description:
       "Our blended silks unite the incomparable drape and luminous glow of silk with the breathability of fine natural fibers. These pieces demand delicate handling to protect their luxurious weave and subtle luster.",
     symbols: [
@@ -274,8 +268,6 @@ const CARE_DATA: Record<FabricType, FabricCareData> = {
   batik: {
     id: "batik",
     name: "Batik",
-    subtitle: "Artisan Hand-Dyed Heritage",
-    badge: "Handcrafted Wearable Art",
     description:
       "Every CHARINI batik creation is a testament to heritage craftsmanship, individually wax-resisted and hand-dyed by master artisans in Sri Lanka. The slight nuances and natural variations are signatures of authentic handmade art.",
     symbols: [
@@ -368,7 +360,7 @@ export default function CareInstructionsClient() {
     <div className="editorial-canvas min-h-screen flex flex-col justify-between py-6 sm:py-12 px-3.5 sm:px-6">
       <div className="w-full max-w-[580px] mx-auto flex flex-col items-center">
         {/* Sleek Mobile-First Top Bar */}
-        <div className="w-full flex items-center justify-between mb-5 sm:mb-7">
+        <div className="w-full flex items-center justify-start mb-5 sm:mb-7">
           <Link
             href={backHref}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 border border-charini-border text-[11px] font-sans font-medium uppercase tracking-[0.14em] text-charini-charcoal hover:bg-black/5 transition-colors group cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
@@ -376,9 +368,6 @@ export default function CareInstructionsClient() {
             <span className="text-xs group-hover:-translate-x-0.5 transition-transform">&larr;</span>
             <span>Return</span>
           </Link>
-          <span className="font-serif italic text-xs sm:text-[13px] text-charini-charcoal-muted">
-            Artisan Wearable Art
-          </span>
         </div>
 
         {/* Refined Brand Emblem Header */}
@@ -440,17 +429,8 @@ export default function CareInstructionsClient() {
 
         {/* Active Fabric Editorial Content Card */}
         <main className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-charini-border shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col gap-5 sm:gap-6">
-          {/* Header of Active Fabric - Mobile Optimized with Clean Stack */}
+          {/* Header of Active Fabric - Clean Stack */}
           <div className="border-b border-charini-border pb-4 sm:pb-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-2">
-              <span className="self-start inline-flex items-center text-[9.5px] sm:text-[10px] font-sans font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-charini-charcoal/5 text-charini-charcoal border border-charini-border/70">
-                {fabric.badge}
-              </span>
-              <span className="text-[11px] sm:text-xs font-serif italic text-charini-charcoal-muted">
-                {fabric.subtitle}
-              </span>
-            </div>
-
             {/* Title with lining numbers so 100% is not dropped */}
             <h2 className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-normal tracking-tight [font-variant-numeric:lining-nums]">
               {fabric.name}
