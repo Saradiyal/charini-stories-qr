@@ -442,6 +442,9 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
 }
 
 const KNOWN_CAMPAIGN_MAP: Record<string, string> = {
+  "main-store": "Main Store",
+  main: "Main Store",
+  store: "Main Store",
   mumbai: "Mumbai Pop-up",
   "mumbai-popup": "Mumbai Pop-up",
   "mumbai-pop-up": "Mumbai Pop-up",
@@ -454,9 +457,9 @@ const KNOWN_CAMPAIGN_MAP: Record<string, string> = {
 };
 
 function formatCampaignName(param: string | null): string {
-  if (!param) return "Mumbai Pop-up";
+  if (!param) return "Main Store";
   const trimmed = decodeURIComponent(param).trim();
-  if (!trimmed) return "Mumbai Pop-up";
+  if (!trimmed) return "Main Store";
 
   // Check known aliases
   const normalizedKey = trimmed.toLowerCase().replace(/[\s_]+/g, "-");

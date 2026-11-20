@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       : "stockist_wholesale";
 
     const message = typeof body.message === "string" ? body.message.trim().slice(0, 2000) : null;
-    const source = typeof body.source === "string" ? body.source.trim().slice(0, 100) : "Mumbai Pop-up";
+    const source = typeof body.source === "string" ? body.source.trim().slice(0, 100) : "Main Store";
 
     // Required field validation
     if (!businessName || !contactName) {
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
       country: country || null,
       inquiry_type: cleanInquiryType,
       message: message || null,
-      source: source || "Mumbai Pop-up",
+      source: source || "Main Store",
     });
 
     if (error) {

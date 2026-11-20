@@ -57,7 +57,7 @@ export const subscribeSchema = z.object({
     .trim()
     .max(100)
     .nullish()
-    .transform((v) => (v && v.trim().length > 0 ? v.trim() : "Mumbai Pop-up")),
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : "Main Store")),
   preferredContactMethod: z
     .enum(["whatsapp", "email"])
     .nullish()
@@ -202,7 +202,7 @@ export function validateSubscription(input: unknown): ValidationOutcome {
       interests: finalInterests,
       specificCutsNote: note,
       marketingConsent,
-      source: source || "Mumbai Pop-up",
+      source: source || "Main Store",
       preferredContactMethod: preferredContactMethod || "whatsapp",
     },
     tooFast: typeof elapsedMs === "number" && elapsedMs < LIMITS.minFillMs,

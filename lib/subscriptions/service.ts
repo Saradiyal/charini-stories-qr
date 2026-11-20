@@ -23,7 +23,7 @@ const INVALID_REASONS = new Set<SubscribeErrorCode>([
   "invalid_request",
 ]);
 
-const DEFAULT_CAMPAIGN = "Mumbai Pop-up";
+const DEFAULT_CAMPAIGN = "Main Store";
 
 /**
  * Validates campaign input strictly against registered campaigns in the database.

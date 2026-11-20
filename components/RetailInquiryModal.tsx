@@ -11,7 +11,7 @@ interface RetailInquiryModalProps {
 export default function RetailInquiryModal({
   isOpen,
   onClose,
-  campaignSource = "Mumbai Pop-up",
+  campaignSource = "Main Store",
 }: RetailInquiryModalProps) {
   const [fullName, setFullName] = useState("");
   const [organization, setOrganization] = useState("");
