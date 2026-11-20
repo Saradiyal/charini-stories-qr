@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -354,6 +354,28 @@ export default function CareInstructionsClient() {
   const queryString = searchParams?.toString();
   const backHref = queryString ? `/?${queryString}` : "/";
 
+  // Check URL hash or query param on initial load
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "").toLowerCase();
+      if (hash === "cotton" || hash === "silk" || hash === "batik") {
+        setActiveFabric(hash as FabricType);
+        return;
+      }
+      const param = searchParams?.get("fabric")?.toLowerCase();
+      if (param === "cotton" || param === "silk" || param === "batik") {
+        setActiveFabric(param as FabricType);
+      }
+    }
+  }, [searchParams]);
+
+  const handleSelectFabric = (id: FabricType) => {
+    setActiveFabric(id);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${id}`);
+    }
+  };
+
   const fabric = CARE_DATA[activeFabric];
 
   return (
@@ -400,7 +422,11 @@ export default function CareInstructionsClient() {
           </div>
 
           {/* Touch-Friendly Segmented Control */}
-          <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/90 backdrop-blur-xs rounded-full border border-charini-border shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div
+            role="tablist"
+            aria-label="Fabric Selection"
+            className="grid grid-cols-3 gap-1.5 p-1.5 bg-[#F4F1EA] rounded-full border border-charini-border shadow-inner"
+          >
             {(
               [
                 { id: "cotton", label: "100% Cotton" },
@@ -412,15 +438,17 @@ export default function CareInstructionsClient() {
               return (
                 <button
                   key={item.id}
+                  role="tab"
                   type="button"
-                  onClick={() => setActiveFabric(item.id)}
-                  className={`min-h-[38px] sm:min-h-[42px] px-2 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-sans font-medium tracking-wide transition-all duration-200 cursor-pointer flex items-center justify-center text-center [font-variant-numeric:lining-nums] ${
+                  aria-selected={isSelected}
+                  onClick={() => handleSelectFabric(item.id)}
+                  className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-sans tracking-wide transition-colors duration-150 cursor-pointer flex items-center justify-center text-center select-none touch-manipulation [font-variant-numeric:lining-nums] ${
                     isSelected
-                      ? "bg-charini-charcoal text-white shadow-xs font-semibold scale-[1.01]"
-                      : "text-charini-charcoal-muted hover:text-charini-charcoal hover:bg-black/5 active:scale-95"
+                      ? "bg-charini-charcoal text-white font-semibold shadow-md"
+                      : "bg-transparent text-charini-charcoal-muted hover:text-charini-charcoal hover:bg-black/5 font-medium"
                   }`}
                 >
-                  <span>{item.label}</span>
+                  <span className="pointer-events-none truncate">{item.label}</span>
                 </button>
               );
             })}
@@ -428,9 +456,19 @@ export default function CareInstructionsClient() {
         </div>
 
         {/* Active Fabric Editorial Content Card */}
-        <main className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-charini-border shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col gap-5 sm:gap-6">
+        <main
+          key={activeFabric}
+          className="w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-charini-border shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col gap-5 sm:gap-6 transition-all duration-200"
+        >
           {/* Header of Active Fabric - Clean Stack */}
           <div className="border-b border-charini-border pb-4 sm:pb-5">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-charini-charcoal inline-block" />
+              <span className="text-[10px] font-sans font-semibold uppercase tracking-[0.18em] text-charini-charcoal-dim">
+                Care Guide &bull; {fabric.name}
+              </span>
+            </div>
+
             {/* Title with lining numbers so 100% is not dropped */}
             <h2 className="font-serif text-2xl sm:text-3xl text-charini-charcoal font-normal tracking-tight [font-variant-numeric:lining-nums]">
               {fabric.name}
